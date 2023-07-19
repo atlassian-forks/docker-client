@@ -38,6 +38,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -240,7 +241,9 @@ public class DockerConfigReader {
     // If the registry shows up in "auths", return it
     final Map<String, RegistryAuth> auths = config.auths();
     if (auths != null && auths.get(registry) != null) {
-      return auths.get(registry).toBuilder().serverAddress(registry).build();
+      return Optional.ofNullable(auths.get(registry))
+              .map(a -> a.toBuilder().serverAddress(registry).build())
+              .orElse(null);
     }
 
     // Else, we use a credential helper.

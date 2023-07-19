@@ -1,18 +1,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>com.spotify</groupId>
-    <artifactId>foss-root</artifactId>
-    <version>5</version>
-  </parent>
-
+  <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>8.14.6-SNAPSHOT</version>
+  <version>8.14.6-SNAPSHOT-atlassian-1</version>
   <packaging>jar</packaging>
   <name>docker-client</name>
   <description>A docker client</description>
   <url>https://github.com/spotify/docker-client</url>
+
+  <distributionManagement>
+    <repository>
+      <id>atlassian-3rdparty</id>
+      <url>https://packages.atlassian.com/3rdparty</url>
+    </repository>
+  </distributionManagement>
 
   <licenses>
     <license>
@@ -23,10 +25,10 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:https://github.com/spotify/docker-client</connection>
-    <developerConnection>scm:git:git@github.com:spotify/docker-client</developerConnection>
-    <url>https://github.com/spotify/docker-client</url>
-    <tag>HEAD</tag>
+    <connection>scm:git:https://github.com/atlassian-forks/docker-client</connection>
+    <developerConnection>scm:git:git@github.com:atlassian-forks/docker-client</developerConnection>
+    <url>https://github.com/atlassian-forks/docker-client</url>
+    <tag>docker-client-8.16.1-atlassian-2</tag>
   </scm>
 
   <developers>
@@ -84,22 +86,22 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>20.0</version>
+      <version>32.1.1-jre</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.jaxrs</groupId>
       <artifactId>jackson-jaxrs-json-provider</artifactId>
-      <version>2.9.6</version>
+      <version>2.14.1</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-guava</artifactId>
-      <version>2.9.6</version>
+      <version>2.14.1</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.9.6</version>
+      <version>2.14.1</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
@@ -165,7 +167,7 @@
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>jsr305</artifactId>
-      <version>3.0.1</version>
+      <version>3.0.2</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -268,6 +270,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-checkstyle-plugin</artifactId>
+	    <version>3.2.2</version>
         <configuration>
           <includeTestSourceDirectory>true</includeTestSourceDirectory>
           <violationSeverity>warning</violationSeverity>
@@ -276,41 +279,14 @@
       </plugin>
       <plugin>
         <artifactId>maven-enforcer-plugin</artifactId>
+      	<version>3.0.0-M3</version>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
         <version>2.8</version>
       </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
-        <version>3.0.5</version>
-        <configuration>
-          <effort>Max</effort>
-          <threshold>Low</threshold>
-          <xmlOutput>true</xmlOutput>
-          <findbugsXmlOutputDirectory>${project.build.directory}/findbugs
-          </findbugsXmlOutputDirectory>
-          <excludeFilterFile>${project.basedir}/findbugs-exclude.xml</excludeFilterFile>
-        </configuration>
-        <dependencies>
-          <dependency>
-            <groupId>org.apache.ant</groupId>
-            <artifactId>ant</artifactId>
-            <version>1.9.6</version>
-          </dependency>
-        </dependencies>
-        <executions>
-          <execution>
-            <phase>verify</phase>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
+      <!--<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <version>2.4</version>
@@ -322,7 +298,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin>
+      </plugin>-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
@@ -343,6 +319,9 @@
               <include>org.apache.httpcomponents:httpcore</include>
               <include>asm:asm</include>
             </includes>
+            <excludes>
+              <exclude>com.github.jnr:jffi</exclude>
+            </excludes>
           </artifactSet>
           <relocations>
             <relocation>
@@ -398,6 +377,7 @@
       </plugin>
       <plugin>
         <artifactId>maven-failsafe-plugin</artifactId>
+	    <version>2.22.2</version>
       </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>

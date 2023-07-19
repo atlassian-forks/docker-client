@@ -23,9 +23,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:git:https://github.com/spotify/docker-client</connection>
-    <developerConnection>scm:git:git@github.com:spotify/docker-client</developerConnection>
-    <url>https://github.com/spotify/docker-client</url>
+    <connection>scm:git:https://github.com/atlassian-forks/docker-client</connection>
+    <developerConnection>scm:git:git@github.com:atlassian-forks/docker-client</developerConnection>
+    <url>https://github.com/atlassian-forks/docker-client</url>
     <tag>HEAD</tag>
   </scm>
 

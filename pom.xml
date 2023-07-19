@@ -8,7 +8,7 @@
   </parent>
 
   <artifactId>docker-client</artifactId>
-  <version>8.16.1-SNAPSHOT</version>
+  <version>8.16.1-atlassian-1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>docker-client</name>
   <description>A docker client</description>

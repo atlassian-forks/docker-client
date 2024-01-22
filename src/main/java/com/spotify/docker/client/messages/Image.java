@@ -81,7 +81,8 @@ public abstract class Image {
                                                   ? null : ImmutableList.copyOf(repoDigests);
     final ImmutableMap<String, String> labelsCopy = labels == null
                                                     ? null : ImmutableMap.copyOf(labels);
+    final Long effectiveVirtualSize = virtualSize == null ? size : virtualSize;
     return new AutoValue_Image(created, id, parentId, repoTagsCopy, repoDigestsCopy, size,
-        virtualSize, labelsCopy);
+            effectiveVirtualSize, labelsCopy);
   }
 }

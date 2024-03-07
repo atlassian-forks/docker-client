@@ -94,7 +94,8 @@ public abstract class ImageInfo {
       @JsonProperty("Size") final Long size,
       @JsonProperty("VirtualSize") final Long virtualSize,
       @JsonProperty("RootFS") final RootFs rootFs) {
+    final Long effectiveVirtualSize = virtualSize == null ? size : virtualSize;
     return new AutoValue_ImageInfo(id, parent, comment, created, container, containerConfig,
-        dockerVersion, author, config, architecture, os, size, virtualSize, rootFs);
+        dockerVersion, author, config, architecture, os, size, effectiveVirtualSize, rootFs);
   }
 }

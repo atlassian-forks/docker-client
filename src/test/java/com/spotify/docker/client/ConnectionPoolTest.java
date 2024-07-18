@@ -50,7 +50,7 @@ public class ConnectionPoolTest {
 
   private static final String BUSYBOX = "busybox";
   private static final String BUSYBOX_LATEST = BUSYBOX + ":latest";
-  private static final String BUSYBOX_BUILDROOT_2013_08_1 = BUSYBOX + ":buildroot-2013.08.1";
+  private static final String BUSYBOX_GLIBC_1_34 = BUSYBOX + ":1.34-glibc";
 
   private static final Logger log = LoggerFactory.getLogger(ConnectionPoolTest.class);
 
@@ -79,7 +79,7 @@ public class ConnectionPoolTest {
                 public Exception call() throws Exception {
                   try (DockerClient docker = DefaultDockerClient.fromEnv().build()) {
                     docker.pull(ConnectionPoolTest.BUSYBOX_LATEST);
-                    docker.pull(ConnectionPoolTest.BUSYBOX_BUILDROOT_2013_08_1);
+                    docker.pull(ConnectionPoolTest.BUSYBOX_GLIBC_1_34);
                   } catch (InterruptedException | DockerException | DockerCertificateException e) {
                     ConnectionPoolTest.log.error(
                             "Error running task: {}", e.getMessage(), e

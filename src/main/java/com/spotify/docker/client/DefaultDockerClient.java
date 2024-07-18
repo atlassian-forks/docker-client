@@ -496,7 +496,13 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   }
 
   private ClientConfig updateProxy(ClientConfig config, Builder builder) {
-    if (builder.useProxy()) {
+    final List<String> localHosts = Arrays.asList("localhost", "127.0.0.1", "[::1]");
+    final String host = getHost();
+    final String scheme = uri.getScheme();
+
+    boolean isLocalOrSpecialProtocol = UNIX_SCHEME.equals(scheme) || NPIPE_SCHEME.equals(scheme) || localHosts.contains(host);
+
+    if (builder.useProxy() && !isLocalOrSpecialProtocol) {
       final String proxyHost = System.getProperty("http.proxyHost");
       if (proxyHost != null) {
         boolean skipProxy = false;
@@ -504,7 +510,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         if (nonProxyHosts != null) {
           // Remove quotes, if any. Refer to https://docs.oracle.com/javase/8/docs/technotes/guides/net/proxies.html
           nonProxyHosts = StringUtils.strip(nonProxyHosts, "\"");
-          String host = getHost();
           for (String nonProxyHost : nonProxyHosts.split("\\|")) {
             if (host.matches(toRegExp(nonProxyHost))) {
               skipProxy = true;

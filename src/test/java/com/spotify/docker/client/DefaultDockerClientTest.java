@@ -295,7 +295,7 @@ public class DefaultDockerClientTest {
 
   private static final String BUSYBOX = "busybox";
   private static final String BUSYBOX_LATEST = BUSYBOX + ":latest";
-  private static final String BUSYBOX_BUILDROOT_2013_08_1 = BUSYBOX + ":buildroot-2013.08.1";
+  private static final String BUSYBOX_GLIBC_1_34 = BUSYBOX + ":1.34-glibc";
   private static final String MEMCACHED = "rohan/memcached-mini";
   private static final String MEMCACHED_LATEST = MEMCACHED + ":latest";
   private static final String CIRROS_PRIVATE = "dxia/cirros-private";
@@ -441,7 +441,7 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testPullWithTag() throws Exception {
-    sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
+    sut.pull(BUSYBOX_GLIBC_1_34);
   }
 
   @SuppressWarnings("emptyCatchBlock")
@@ -457,10 +457,10 @@ public class DefaultDockerClientTest {
       public ContainerExit call() throws Exception {
         try {
           try {
-            sut.removeImage(BUSYBOX_BUILDROOT_2013_08_1);
+            sut.removeImage(BUSYBOX_GLIBC_1_34);
           } catch (DockerException ignored) {
           }
-          sut.pull(BUSYBOX_BUILDROOT_2013_08_1, message -> {
+          sut.pull(BUSYBOX_GLIBC_1_34, message -> {
             if (!started.isDone()) {
               started.set(true);
             }
@@ -867,14 +867,14 @@ public class DefaultDockerClientTest {
   @Test
   public void testTagForce() throws Exception {
     sut.pull(BUSYBOX_LATEST);
-    sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
+    sut.pull(BUSYBOX_GLIBC_1_34);
 
     final String name = "test-repo/tag-force:sometag";
     // Assign name to first image
     sut.tag(BUSYBOX_LATEST, name);
 
     // Force-re-assign tag to another image
-    sut.tag(BUSYBOX_BUILDROOT_2013_08_1, name, true);
+    sut.tag(BUSYBOX_GLIBC_1_34, name, true);
 
     // Verify that re-tagging was successful
     final RemovedImage removedImage = getOnlyElement(sut.removeImage(name));
@@ -883,8 +883,8 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testInspectImage() throws Exception {
-    sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
-    final ImageInfo info = sut.inspectImage(BUSYBOX_BUILDROOT_2013_08_1);
+    sut.pull(BUSYBOX_GLIBC_1_34);
+    final ImageInfo info = sut.inspectImage(BUSYBOX_GLIBC_1_34);
     assertThat(info, notNullValue());
     assertThat(info.architecture(), not(isEmptyOrNullString()));
     assertThat(info.author(), not(isEmptyOrNullString()));
@@ -2566,8 +2566,8 @@ public class DefaultDockerClientTest {
     final Date expected = new StdDateFormat().parse("2015-09-18T17:44:28.145Z");
 
     // Verify the formatter works when used with the client
-    sut.pull(BUSYBOX_BUILDROOT_2013_08_1);
-    final ImageInfo imageInfo = sut.inspectImage(BUSYBOX_BUILDROOT_2013_08_1);
+    sut.pull(BUSYBOX_GLIBC_1_34);
+    final ImageInfo imageInfo = sut.inspectImage(BUSYBOX_GLIBC_1_34);
     assertThat(imageInfo.created(), equalTo(expected));
   }
 

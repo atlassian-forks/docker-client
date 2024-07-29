@@ -106,6 +106,7 @@ import okio.Buffer;
 
 import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.internal.util.Base64;
+import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -229,6 +230,49 @@ public class DefaultDockerClientUnitTest {
       System.clearProperty("http.proxyHost");
       System.clearProperty("http.proxyPort");
       System.clearProperty("http.nonProxyHosts");
+    }
+  }
+
+  @Test
+  public void testProxySkippedForUnixSockets() {
+    // Set proxy properties
+    System.setProperty("http.proxyHost", "proxy.example.com");
+    System.setProperty("http.proxyPort", "8080");
+
+    try {
+      List<String> uris = Arrays.asList("unix:///var/run/docker.sock", "unix:///localhost:80");
+
+      for (String uri : uris) {
+        final DefaultDockerClient client = DefaultDockerClient.builder()
+                .uri(uri).build();
+
+        assertThat(client.getClient().getConfiguration().getProperty("jersey.config.client.proxy.uri"),
+                CoreMatchers.is(nullValue()));
+      }
+    } finally {
+      System.clearProperty("http.proxyHost");
+      System.clearProperty("http.proxyPort");
+    }
+  }
+
+  @Test
+  public void testProxySkippedForLocalhost() {
+    System.setProperty("http.proxyHost", "proxy.example.com");
+    System.setProperty("http.proxyPort", "8080");
+
+    try {
+      final DefaultDockerClient client = DefaultDockerClient.builder()
+              .uri("http://localhost:2375").build();
+      final DefaultDockerClient clientIPv6 = DefaultDockerClient.builder()
+              .uri("http://[::1]:2375").build();
+
+      assertThat(client.getClient().getConfiguration()
+              .getProperty("jersey.config.client.proxy.uri"), CoreMatchers.is(nullValue()));
+      assertThat(clientIPv6.getClient().getConfiguration()
+              .getProperty("jersey.config.client.proxy.uri"), CoreMatchers.is(nullValue()));
+    } finally {
+      System.clearProperty("http.proxyHost");
+      System.clearProperty("http.proxyPort");
     }
   }
 

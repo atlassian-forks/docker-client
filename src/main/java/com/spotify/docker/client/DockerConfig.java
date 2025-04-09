@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableMap;
 import com.spotify.docker.client.messages.RegistryAuth;
 
 import java.util.Map;
-import javax.annotation.Nullable;
+
 
 /**
  * Represents the contents of the docker config.json file.
@@ -40,35 +40,35 @@ import javax.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class DockerConfig {
 
-  @Nullable
+
   @JsonProperty("credHelpers")
   public abstract ImmutableMap<String, String> credHelpers();
 
-  @Nullable
+
   @JsonProperty("auths")
   public abstract ImmutableMap<String, RegistryAuth> auths();
 
-  @Nullable
+
   @JsonProperty("HttpHeaders")
   public abstract ImmutableMap<String, String> httpHeaders();
 
-  @Nullable
+
   @JsonProperty("credsStore")
   public abstract String credsStore();
 
-  @Nullable
+
   @JsonProperty("detachKeys")
   public abstract String detachKeys();
 
-  @Nullable
+
   @JsonProperty("stackOrchestrator")
   public abstract String stackOrchestrator();
 
-  @Nullable
+
   @JsonProperty("psFormat")
   public abstract String psFormat();
 
-  @Nullable
+
   @JsonProperty("imagesFormat")
   public abstract String imagesFormat();
 

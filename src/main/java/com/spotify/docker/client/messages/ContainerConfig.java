@@ -31,14 +31,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
@@ -104,6 +100,7 @@ public abstract class ContainerConfig {
    * @deprecated As of 8.10.0, use {@link #volumes()}.
    */
   @Deprecated
+  @Nullable
   public Set<String> volumeNames() {
     return volumes();
   }
@@ -176,7 +173,7 @@ public abstract class ContainerConfig {
       @JsonProperty("Env") final List<String> env,
       @JsonProperty("Cmd") final List<String> cmd,
       @JsonProperty("Image") final String image,
-      @JsonProperty("Volumes") final Set<String> volumes,
+      @Nullable @JsonProperty("Volumes") final Set<String> volumes,
       @JsonProperty("WorkingDir") final String workingDir,
       @JsonProperty("Entrypoint") final List<String> entrypoint,
       @JsonProperty("NetworkDisabled") final Boolean networkDisabled,
@@ -260,34 +257,19 @@ public abstract class ContainerConfig {
     public abstract Builder cmd(final String... cmd);
 
     public abstract Builder image(final String image);
-
-    abstract ImmutableSet.Builder<String> volumesBuilder();
-
-    public Builder addVolume(final String volume) {
-      volumesBuilder().add(volume);
-      return this;
-    }
-
-    public Builder addVolumes(final String... volumes) {
-      for (final String volume : volumes) {
-        volumesBuilder().add(volume);
-      }
-      return this;
-    }
-
     /**
      * @deprecated As of 8.10.0, use {@link #volumes(Set)} or
      *             {@link #volumes(String...)}.
      */
     @Deprecated
-    public Builder volumes(final Map<String, Map> volumes) {
+    public @Nullable Builder volumes(@Nullable final Map<String, Map> volumes) {
       this.volumes(volumes.keySet());
       return this;
     }
 
-    public abstract Builder volumes(final Set<String> volumes);
+    public abstract Builder volumes(@Nullable final Set<String> volumes);
 
-    public abstract Builder volumes(final String... volumes);
+    public  abstract Builder volumes(@Nullable final String... volumes);
 
     public abstract Builder workingDir(final String workingDir);
 

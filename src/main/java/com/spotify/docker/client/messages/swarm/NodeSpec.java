@@ -29,7 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
@@ -53,14 +53,7 @@ public abstract class NodeSpec {
   public abstract static class Builder {
     public abstract Builder name(String name);
 
-    abstract ImmutableMap.Builder<String, String> labelsBuilder();
-
-    public Builder addLabel(final String label, final String value) {
-      labelsBuilder().put(label, value);
-      return this;
-    }
-
-    public abstract Builder labels(Map<String, String> labels);
+    public abstract Builder labels(@Nullable Map<String, String> labels);
 
     public abstract Builder role(String role);
 
@@ -74,7 +67,11 @@ public abstract class NodeSpec {
   }
 
   public static NodeSpec.Builder builder(final NodeSpec source) {
-    return new AutoValue_NodeSpec.Builder(source);
+    return builder()
+            .name(source.name())
+            .labels(source.labels())
+            .role(source.role())
+            .availability(source.availability());
   }
 
   @JsonCreator

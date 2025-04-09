@@ -31,7 +31,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
@@ -50,14 +50,7 @@ public abstract class Driver {
 
     public abstract Builder name(String name);
 
-    public abstract Builder options(Map<String, String> options);
-
-    abstract ImmutableMap.Builder<String, String> optionsBuilder();
-
-    public Builder addOption(final String name, final String value) {
-      optionsBuilder().put(name, value);
-      return this;
-    }
+    public abstract Builder options(@Nullable Map<String, String> options);
 
     public abstract Driver build();
   }

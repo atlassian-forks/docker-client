@@ -243,6 +243,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -269,7 +270,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.internal.util.Base64;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -2761,7 +2761,7 @@ public class DefaultDockerClientTest {
         .build();
     final ContainerConfig volumeConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
-        .addVolume("/foo")
+        .volumes("/foo")
         .hostConfig(hostConfig)
         .build();
     final String id = sut.createContainer(volumeConfig, randomName()).id();
@@ -2889,7 +2889,7 @@ public class DefaultDockerClientTest {
         .build();
     final ContainerConfig volumeConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
-        .addVolume(anonVolumeTo)
+        .volumes(anonVolumeTo)
         .hostConfig(hostConfig)
         .build();
     final String id = sut.createContainer(volumeConfig, randomName()).id();
@@ -3038,7 +3038,7 @@ public class DefaultDockerClientTest {
 
     final ContainerConfig volumeConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
-        .addVolume("/foo")
+        .volumes("/foo")
         .cmd("touch", "/foo/bar")
         .build();
     sut.createContainer(volumeConfig, volumeContainer);
@@ -3077,7 +3077,7 @@ public class DefaultDockerClientTest {
 
     final ContainerConfig volumeConfig = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
-        .addVolume("/foo")
+        .volumes("/foo")
         // TODO (mbrown): remove sleep - added to make sure container is still alive when attaching
         //.cmd("ls", "-la")
         .cmd("sh", "-c", "ls -la; sleep 3")
@@ -4973,7 +4973,7 @@ public class DefaultDockerClientTest {
     }
     assertThat(sut.listSecrets().size(), equalTo(0));
 
-    final String secretData = Base64.encodeAsString("testdata".getBytes());
+    final String secretData = Base64.getEncoder().encodeToString("testdata".getBytes());
     
     final Map<String, String> labels = ImmutableMap.of("foo", "bar", "1", "a");
 
@@ -5142,7 +5142,7 @@ public class DefaultDockerClientTest {
     }
     assertThat(sut.listSecrets().size(), equalTo(0));
 
-    final String secretData = Base64.encodeAsString("testdata".getBytes());
+    final String secretData = Base64.getEncoder().encodeToString("testdata".getBytes());
 
     final Map<String, String> labels = ImmutableMap.of("foo", "bar", "1", "a");
 
@@ -5234,8 +5234,8 @@ public class DefaultDockerClientTest {
         .builder()
         .containerSpec(ContainerSpec.builder().image("alpine")
                                .command(commandLine).build())
-        .logDriver(Driver.builder().name("json-file").addOption("max-file", "3")
-                           .addOption("max-size", "10M").build())
+        .logDriver(Driver.builder().name("json-file").options(Map.of("max-file", "3"))
+                           .options(Map.of("max-size", "10M")).build())
         .resources(ResourceRequirements.builder()
                            .limits(com.spotify.docker.client.messages.swarm.Resources.builder()
                                            .memoryBytes(10 * 1024 * 1024L).build())
@@ -5413,13 +5413,15 @@ public class DefaultDockerClientTest {
     final ServiceSpec spec = createServiceSpec(serviceName, labels);
     sut.createService(spec);
 
-    final List<Service> services = sut.listServices(Service.find().addLabel("foo", "bar").build());
+    final List<Service> services = sut.listServices(Service.find().        labels(Map.of("foo", "baz"))
+            .build());
     
     assertThat(services.size(), is(1));
     assertThat(services.get(0).spec().labels().get("foo"), is("bar"));
     
     final List<Service> notFoundServices = sut.listServices(Service.find()
-        .addLabel("bar", "foo").build());
+            .labels(Map.of("foo", "baz"))
+            .build());
     assertThat(notFoundServices.size(), is(0));
   }
 

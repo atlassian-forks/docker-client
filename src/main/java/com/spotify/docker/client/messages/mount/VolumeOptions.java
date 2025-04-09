@@ -31,7 +31,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
@@ -54,14 +54,7 @@ public abstract class VolumeOptions {
 
     public abstract Builder noCopy(Boolean noCopy);
 
-    public abstract Builder labels(Map<String, String> labels);
-
-    abstract ImmutableMap.Builder<String, String> labelsBuilder();
-
-    public Builder addLabel(final String label, final String value) {
-      labelsBuilder().put(label, value);
-      return this;
-    }
+    public abstract Builder labels(@Nullable Map<String, String> labels);
 
     public abstract Builder driverConfig(Driver driverConfig);
 

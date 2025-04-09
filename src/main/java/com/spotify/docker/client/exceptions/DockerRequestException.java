@@ -21,7 +21,7 @@
 package com.spotify.docker.client.exceptions;
 
 import java.net.URI;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 public class DockerRequestException extends DockerException {
 

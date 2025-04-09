@@ -10,6 +10,10 @@ Released January 16, 2019
 [1132]: https://github.com/spotify/docker-client/pull/1132
 [1111]: https://github.com/spotify/docker-client/pull/1111
 
+## 9.0.0-atlassian-1
+- Migration to jakarta namespace
+- Minimum required Java version is 17
+
 ## 8.14.5
 
 - Support for Windows 10 Docker named pipes ([875][])

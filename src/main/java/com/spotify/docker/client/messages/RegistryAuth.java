@@ -27,13 +27,11 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.spotify.docker.client.DockerConfigReader;
 import java.io.IOException;
-import java.nio.file.Path;
-import javax.annotation.Nullable;
-import org.glassfish.jersey.internal.util.Base64;
+import java.util.Base64;
+import jakarta.annotation.Nullable;
 
 /**
  * Represents all the auth info for a particular registry.
@@ -143,7 +141,7 @@ public abstract class RegistryAuth {
   /** Construct a Builder based upon the "auth" field of the docker client config file. */
   public static Builder forAuth(final String auth) {
     // split with limit=2 to catch case where password contains a colon
-    final String[] authParams = Base64.decodeAsString(auth).split(":", 2);
+    final String[] authParams = new String(Base64.getDecoder().decode(auth)).split(":", 2);
 
     if (authParams.length != 2) {
       return builder();

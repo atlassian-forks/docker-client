@@ -37,7 +37,7 @@ import com.spotify.docker.client.jackson.UnixTimestampSerializer;
 import java.util.Date;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, setterVisibility = NONE, getterVisibility = NONE)

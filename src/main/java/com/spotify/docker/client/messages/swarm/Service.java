@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableMap;
 import java.util.Date;
 import java.util.Map;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
@@ -110,15 +110,8 @@ public abstract class Service {
         return this;
       }
 
-      public abstract Builder labels(final Map<String, String> labels);
-      
-      abstract ImmutableMap.Builder<String, String> labelsBuilder();
+      public abstract Builder labels(@Nullable final Map<String, String> labels);
 
-      public Builder addLabel(final String label, final String value) {
-        labelsBuilder().put(label, value);
-        return this;
-      }
-      
       public abstract Criteria build();
     }
   }

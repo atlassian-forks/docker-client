@@ -34,7 +34,7 @@ import com.spotify.docker.client.messages.mount.Mount;
 
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 @AutoValue
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
@@ -137,25 +137,9 @@ public abstract class ContainerSpec {
       return this;
     }
 
-    abstract ImmutableMap.Builder<String, String> labelsBuilder();
-
-    public Builder addLabel(final String label, final String value) {
-      labelsBuilder().put(label, value);
-      return this;
-    }
-
-    /**
-     * @deprecated  As of release 7.0.0, replaced by {@link #addLabel(String, String)} ()}.
-     */
-    @Deprecated
-    public Builder withLabel(final String label, final String value) {
-      addLabel(label, value);
-      return this;
-    }
-
     public abstract Builder hostname(String hostname);
 
-    public abstract Builder labels(Map<String, String> labels);
+    public abstract Builder labels(@Nullable Map<String, String> labels);
 
     public abstract Builder command(String... commands);
 

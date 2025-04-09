@@ -3,7 +3,7 @@
 
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>8.16.1-atlassian-16-SNAPSHOT</version>
+  <version>9.0.0-atlassian-1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>docker-client</name>
   <description>A docker client</description>
@@ -106,22 +106,27 @@
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
       <artifactId>jersey-client</artifactId>
-      <version>2.22.2</version>
+      <version>3.1.9</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.connectors</groupId>
       <artifactId>jersey-apache-connector</artifactId>
-      <version>2.22.2</version>
+      <version>3.1.9</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.media</groupId>
       <artifactId>jersey-media-json-jackson</artifactId>
-      <version>2.22.2</version>
+      <version>3.1.9</version>
     </dependency>
     <dependency>
-      <groupId>javax.activation</groupId>
-      <artifactId>activation</artifactId>
-      <version>1.1</version>
+      <groupId>jakarta.activation</groupId>
+      <artifactId>jakarta.activation-api</artifactId>
+      <version>2.1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+      <version>2.1.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -160,8 +165,13 @@
     </dependency>
     <dependency>
       <groupId>com.google.auto.value</groupId>
+      <artifactId>auto-value-annotations</artifactId>
+      <version>1.11.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.auto.value</groupId>
       <artifactId>auto-value</artifactId>
-      <version>1.3</version>
+      <version>1.11.0</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -262,10 +272,10 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.0</version>
+        <version>3.13.0</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>17</source>
+          <target>17</target>
         </configuration>
       </plugin>
       <plugin>
@@ -308,8 +318,8 @@
           <artifactSet>
             <includes>
               <include>com.fasterxml.jackson.**</include>
-              <include>javax.annotation:*</include>
-              <include>javax.ws.rs:*</include>
+              <include>jakarta.annotation:*</include>
+              <include>jakarta.ws.rs:*</include>
               <include>org.glassfish.**</include>
               <include>org.jvnet.hk2.**</include>
               <include>com.github.jnr:*</include>
@@ -325,16 +335,16 @@
           </artifactSet>
           <relocations>
             <relocation>
-              <pattern>javax.annotation</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.javax.annotation</shadedPattern>
+              <pattern>jakarta.annotation</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.jakarta.annotation</shadedPattern>
             </relocation>
             <relocation>
-              <pattern>javax.inject</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.javax.inject</shadedPattern>
+              <pattern>jakarta.inject</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.jakarta.inject</shadedPattern>
             </relocation>
             <relocation>
-              <pattern>javax.ws.rs</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.javax.ws.rs</shadedPattern>
+              <pattern>jakarta.ws.rs</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.jakarta.ws.rs</shadedPattern>
             </relocation>
             <relocation>
               <pattern>org.glassfish</pattern>

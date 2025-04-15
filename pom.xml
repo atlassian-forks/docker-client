@@ -318,8 +318,6 @@
           <artifactSet>
             <includes>
               <include>com.fasterxml.jackson.**</include>
-              <include>jakarta.annotation:*</include>
-              <include>jakarta.ws.rs:*</include>
               <include>org.glassfish.**</include>
               <include>org.jvnet.hk2.**</include>
               <include>com.github.jnr:*</include>
@@ -334,18 +332,6 @@
             </excludes>
           </artifactSet>
           <relocations>
-            <relocation>
-              <pattern>jakarta.annotation</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.jakarta.annotation</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>jakarta.inject</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.jakarta.inject</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>jakarta.ws.rs</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.jakarta.ws.rs</shadedPattern>
-            </relocation>
             <relocation>
               <pattern>org.glassfish</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.org.glassfish</shadedPattern>

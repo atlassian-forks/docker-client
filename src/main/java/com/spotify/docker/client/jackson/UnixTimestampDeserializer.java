@@ -48,8 +48,7 @@ public class UnixTimestampDeserializer extends JsonDeserializer<Date> {
     } else if (token == JsonToken.VALUE_NUMBER_INT) {
       return toDate(parser.getLongValue());
     }
-    throw ctxt.wrongTokenException(parser, JsonToken.VALUE_STRING,
-                                   "Expected a string or numeric value");
+    throw ctxt.wrongTokenException(parser, UnixTimestampDeserializer.class, JsonToken.VALUE_STRING, "Expected a string or numeric value");
   }
 
   private static Date toDate(long secondsSinceEpoch) {

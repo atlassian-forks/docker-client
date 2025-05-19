@@ -130,7 +130,6 @@ import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.UnlockKey;
 import com.spotify.docker.client.npipe.NpipeConnectionSocketFactory;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -1469,7 +1468,6 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     return build(directory, name, null, handler, params);
   }
 
-  @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
   @Override
   public String build(final Path directory, final String name, final String dockerfile,
                       final ProgressHandler handler, final BuildParam... params)

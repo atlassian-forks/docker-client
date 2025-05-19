@@ -189,18 +189,7 @@
       <version>1.11.0</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>jsr305</artifactId>
-      <version>3.0.2</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.code.findbugs</groupId>
-      <artifactId>annotations</artifactId>
-      <version>3.0.1</version>
-      <scope>provided</scope>
-    </dependency>
+
     <!-- TODO we should pull out the Google Cloud support to a new library -->
     <dependency>
       <groupId>com.google.auth</groupId>
@@ -333,10 +322,14 @@
           <artifactSet>
             <includes>
               <include>org.ow2.asm:*</include>
+              <include>com.github.jnr:*</include>
               <include>org.apache.httpcomponents:httpclient</include>
               <include>org.apache.httpcomponents:httpcore</include>
               <include>asm:asm</include>
             </includes>
+            <excludes>
+              <exclude>com.github.jnr:jffi</exclude>
+            </excludes>
           </artifactSet>
           <relocations>
             <relocation>
@@ -359,6 +352,18 @@
               <pattern>com.kenai.jnr</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.com.kenai.jnr</shadedPattern>
             </relocation>
+            <relocation>
+              <pattern>mozilla</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.mozilla</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>jnr</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.jnr</shadedPattern>
+            </relocation>
+            <relocation>
+              <pattern>jni</pattern>
+              <shadedPattern>com.spotify.docker.client.shaded.jni</shadedPattern>
+             </relocation>
           </relocations>
           <shadedArtifactAttached>true</shadedArtifactAttached>
           <transformers>

@@ -35,8 +35,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -715,7 +713,6 @@ public abstract class HostConfig {
       return new AutoValue_HostConfig_Bind.Builder().readOnly(false);
     }
 
-    @SuppressFBWarnings("NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE")
     public String toString() {
       if (isNullOrEmpty(to())) {
         return "";

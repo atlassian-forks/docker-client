@@ -25,7 +25,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.spotify.docker.client.DockerCredentialHelper.CredentialHelperDelegate;
 import com.spotify.docker.client.messages.DockerCredentialHelperAuth;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -42,7 +41,6 @@ import org.slf4j.LoggerFactory;
  * The default credential helper delegate.
  * Executes each credential helper operation on the system.
  */
-@SuppressFBWarnings("SIC_INNER_SHOULD_BE_STATIC_ANON")
 class SystemCredentialHelperDelegate implements CredentialHelperDelegate {
 
   private static final Logger log = LoggerFactory.getLogger(DockerConfigReader.class);

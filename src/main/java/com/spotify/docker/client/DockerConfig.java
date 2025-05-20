@@ -29,6 +29,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import com.spotify.docker.client.messages.RegistryAuth;
+import jakarta.annotation.Nullable;
 
 import java.util.Map;
 
@@ -58,17 +59,19 @@ public abstract class DockerConfig {
 
 
   @JsonProperty("detachKeys")
+  @Nullable
   public abstract String detachKeys();
 
 
   @JsonProperty("stackOrchestrator")
+  @Nullable
   public abstract String stackOrchestrator();
 
-
+  @Nullable
   @JsonProperty("psFormat")
   public abstract String psFormat();
 
-
+  @Nullable
   @JsonProperty("imagesFormat")
   public abstract String imagesFormat();
 

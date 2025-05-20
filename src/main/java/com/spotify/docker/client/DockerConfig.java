@@ -55,6 +55,7 @@ public abstract class DockerConfig {
 
 
   @JsonProperty("credsStore")
+  @Nullable
   public abstract String credsStore();
 
 

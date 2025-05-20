@@ -323,8 +323,6 @@
             <includes>
               <include>org.ow2.asm:*</include>
               <include>com.github.jnr:*</include>
-              <include>org.apache.httpcomponents:httpclient</include>
-              <include>org.apache.httpcomponents:httpcore</include>
               <include>asm:asm</include>
             </includes>
             <excludes>
@@ -332,10 +330,6 @@
             </excludes>
           </artifactSet>
           <relocations>
-            <relocation>
-              <pattern>org.apache.http</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.org.apache.http</shadedPattern>
-            </relocation>
             <relocation>
               <pattern>org.objectweb.asm</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.org.objectweb.asm</shadedPattern>

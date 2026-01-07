@@ -216,7 +216,6 @@ import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.SwarmInit;
 import com.spotify.docker.client.messages.swarm.SwarmSpec;
-import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskDefaults;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
 import com.spotify.docker.client.messages.swarm.UnlockKey;
@@ -243,6 +242,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -269,7 +269,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.pool.PoolStats;
 import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.internal.util.Base64;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -4973,7 +4972,7 @@ public class DefaultDockerClientTest {
     }
     assertThat(sut.listSecrets().size(), equalTo(0));
 
-    final String secretData = Base64.encodeAsString("testdata".getBytes());
+    final String secretData = Base64.getEncoder().encodeToString("testdata".getBytes());
     
     final Map<String, String> labels = ImmutableMap.of("foo", "bar", "1", "a");
 
@@ -5142,7 +5141,7 @@ public class DefaultDockerClientTest {
     }
     assertThat(sut.listSecrets().size(), equalTo(0));
 
-    final String secretData = Base64.encodeAsString("testdata".getBytes());
+    final String secretData = Base64.getEncoder().encodeToString("testdata".getBytes());
 
     final Map<String, String> labels = ImmutableMap.of("foo", "bar", "1", "a");
 

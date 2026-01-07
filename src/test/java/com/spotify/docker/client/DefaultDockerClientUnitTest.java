@@ -89,11 +89,13 @@ import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
 import com.spotify.docker.client.messages.swarm.Version;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Date;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -105,7 +107,6 @@ import okhttp3.mockwebserver.RecordedRequest;
 import okio.Buffer;
 
 import org.glassfish.jersey.client.RequestEntityProcessing;
-import org.glassfish.jersey.internal.util.Base64;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Before;
@@ -813,7 +814,7 @@ public class DefaultDockerClientUnitTest {
 
     final ConfigSpec configSpec = ConfigSpec
         .builder()
-        .data(Base64.encodeAsString("foobar"))
+        .data(Base64.getEncoder().encodeToString("foobar".getBytes(StandardCharsets.UTF_8)))
         .name("foo.yaml")
         .build();
 
@@ -893,7 +894,7 @@ public class DefaultDockerClientUnitTest {
 
     final ConfigSpec configSpec = ConfigSpec
         .builder()
-        .data(Base64.encodeAsString("foobar"))
+        .data(Base64.getEncoder().encodeToString("foobar".getBytes(StandardCharsets.UTF_8)))
         .name("foo.yaml")
         .build();
 
@@ -915,7 +916,7 @@ public class DefaultDockerClientUnitTest {
 
     final ConfigSpec configSpec = ConfigSpec
         .builder()
-        .data(Base64.encodeAsString("foobar"))
+        .data(Base64.getEncoder().encodeToString("foobar".getBytes(StandardCharsets.UTF_8)))
         .name("foo.yaml")
         .build();
 
@@ -935,7 +936,7 @@ public class DefaultDockerClientUnitTest {
 
     final ConfigSpec configSpec = ConfigSpec
         .builder()
-        .data(Base64.encodeAsString("foobar"))
+        .data(Base64.getEncoder().encodeToString("foobar".getBytes(StandardCharsets.UTF_8)))
         .name("foo.yaml")
         .build();
 
@@ -1049,7 +1050,7 @@ public class DefaultDockerClientUnitTest {
 
     final ConfigSpec configSpec = ConfigSpec
         .builder()
-        .data(Base64.encodeAsString("foobar"))
+        .data(Base64.getEncoder().encodeToString("foobar".getBytes(StandardCharsets.UTF_8)))
         .name("foo.yaml")
         .build();
 
@@ -1069,7 +1070,7 @@ public class DefaultDockerClientUnitTest {
 
     final ConfigSpec configSpec = ConfigSpec
         .builder()
-        .data(Base64.encodeAsString("foobar"))
+        .data(Base64.getEncoder().encodeToString("foobar".getBytes(StandardCharsets.UTF_8)))
         .name("foo.yaml")
         .build();
 

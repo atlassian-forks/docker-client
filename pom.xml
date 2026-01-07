@@ -6,7 +6,7 @@
   <version>8.16.1-atlassian-16-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>docker-client</name>
-  <description>A docker client</description>
+  <description>A docker client </description>
   <url>https://github.com/spotify/docker-client</url>
 
   <distributionManagement>

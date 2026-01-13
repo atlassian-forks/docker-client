@@ -3,7 +3,7 @@
 
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>8.16.1-atlassian-17-SNAPSHOT</version>
+  <version>8.16.1-atlassian-18-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>docker-client</name>
   <description>A docker client </description>
@@ -313,8 +313,8 @@
           <artifactSet>
             <includes>
               <include>com.fasterxml.jackson.**</include>
-              <include>javax.annotation:*</include>
-              <include>javax.ws.rs:*</include>
+              <include>jakarta.annotation:jakarta.annotation-api</include>
+              <include>jakarta.ws.rs:jakarta.ws.rs-api</include>
               <include>org.glassfish.**</include>
               <include>org.jvnet.hk2.**</include>
               <include>com.github.jnr:*</include>

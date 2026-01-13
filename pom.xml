@@ -313,8 +313,8 @@
           <artifactSet>
             <includes>
               <include>com.fasterxml.jackson.**</include>
-              <include>javax.annotation:*</include>
-              <include>javax.ws.rs:*</include>
+              <include>jakarta.annotation:jakarta.annotation-api</include>
+              <include>jakarta.ws.rs:jakarta.ws.rs-api</include>
               <include>org.glassfish.**</include>
               <include>org.jvnet.hk2.**</include>
               <include>com.github.jnr:*</include>

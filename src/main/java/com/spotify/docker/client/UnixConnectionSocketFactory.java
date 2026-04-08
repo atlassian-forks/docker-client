@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -31,12 +31,13 @@ import jnr.unixsocket.UnixSocket;
 import jnr.unixsocket.UnixSocketAddress;
 import jnr.unixsocket.UnixSocketChannel;
 
-import org.apache.http.HttpHost;
-import org.apache.http.annotation.Contract;
-import org.apache.http.annotation.ThreadingBehavior;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.annotation.Contract;
+import org.apache.hc.core5.annotation.ThreadingBehavior;
+import org.apache.hc.client5.http.ConnectTimeoutException;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 
 /**
  * Provides a ConnectionSocketFactory for connecting Apache HTTP clients to Unix sockets.
@@ -70,7 +71,7 @@ public class UnixConnectionSocketFactory implements ConnectionSocketFactory {
   }
 
   @Override
-  public Socket connectSocket(final int connectTimeout,
+  public Socket connectSocket(final TimeValue connectTimeout,
                               final Socket socket,
                               final HttpHost host,
                               final InetSocketAddress remoteAddress,
@@ -80,11 +81,11 @@ public class UnixConnectionSocketFactory implements ConnectionSocketFactory {
       throw new AssertionError("Unexpected socket: " + socket);
     }
 
-    socket.setSoTimeout(connectTimeout);
+    socket.setSoTimeout(connectTimeout.toMillisecondsIntBound());
     try {
       socket.getChannel().connect(new UnixSocketAddress(socketFile));
     } catch (SocketTimeoutException e) {
-      throw new ConnectTimeoutException(e, null, remoteAddress.getAddress());
+      throw new ConnectTimeoutException("SocketTimeoutException during channel connect operation: " + e.getMessage(), host);
     }
     return socket;
   }

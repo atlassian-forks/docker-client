@@ -8,9 +8,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -267,9 +267,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.apache.http.pool.PoolStats;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.pool.PoolStats;
+import org.glassfish.jersey.apache5.connector.Apache5ClientProperties;
 import org.hamcrest.CustomTypeSafeMatcher;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
@@ -498,7 +498,7 @@ public class DefaultDockerClientTest {
   public void testPullPrivateRepoWithoutAuth() throws Exception {
     sut.pull(CIRROS_PRIVATE_LATEST);
   }
-  
+
   private static Path getResource(String name) throws URISyntaxException {
     // Resources.getResources(...).getPath() does not work correctly on windows,
     // hence this workaround.  See: https://github.com/spotify/docker-client/pull/780
@@ -578,7 +578,7 @@ public class DefaultDockerClientTest {
     final File imageFile = save(BUSYBOX);
     assertTrue(imageFile.length() > 0);
   }
-  
+
   @Test
   public void testLoad() throws Exception {
     // Ensure the local Docker instance has the busybox image so that save() will work
@@ -1033,7 +1033,7 @@ public class DefaultDockerClientTest {
     final SettableFuture<Boolean> interrupted = SettableFuture.create();
 
     final String imageName = "test-build-name";
-    
+
     final Future<?> buildFuture = executorService.submit((Callable<Void>) () -> {
       try {
         try {
@@ -1073,7 +1073,7 @@ public class DefaultDockerClientTest {
       fail();
     } catch (ImageNotFoundException e) {
     }
-    
+
     // Verify that the thread was interrupted
     assertThat(interrupted.get(), is(true));
   }
@@ -3924,7 +3924,7 @@ public class DefaultDockerClientTest {
     sut.inspectNetwork(network.id());
 
   }
-  
+
   @Test
   public void testFilterNetworks() throws Exception {
     requireDockerApiVersionAtLeast("1.22", "networks");
@@ -3936,57 +3936,57 @@ public class DefaultDockerClientTest {
     final Network network1 = createNetwork(network1Config);
     final Network network2 = createNetwork(network2Config);
     final Network hostNetwork = getHostNetwork();
-    
+
     List<Network> networks;
-    
+
     // filter by id
     networks = sut.listNetworks(ListNetworksParam.byNetworkId(network1.id()));
     assertThat(networks, hasItem(network1));
     assertThat(networks, not(hasItem(network2)));
-    
+
     // filter by name
     networks = sut.listNetworks(ListNetworksParam.byNetworkName(network1.name()));
     assertThat(networks, hasItem(network1));
     assertThat(networks, not(hasItem(network2)));
-    
+
     // filter by type
     networks = sut.listNetworks(ListNetworksParam.withType(BUILTIN));
     assertThat(networks, hasItem(hostNetwork));
     assertThat(networks, not(hasItems(network1, network2)));
-    
+
     networks = sut.listNetworks(ListNetworksParam.builtInNetworks());
     assertThat(networks, hasItem(hostNetwork));
     assertThat(networks, not(hasItems(network1, network2)));
-    
+
     networks = sut.listNetworks(ListNetworksParam.customNetworks());
     assertThat(networks, not(hasItem(hostNetwork)));
     assertThat(networks, hasItems(network1, network2));
-    
+
     // filter by driver
     if (dockerApiVersionAtLeast("1.24")) {
       networks = sut.listNetworks(ListNetworksParam.withDriver("bridge"));
       assertThat(networks, not(hasItem(hostNetwork)));
       assertThat(networks, hasItems(network1, network2));
-      
+
       networks = sut.listNetworks(ListNetworksParam.withDriver("host"));
       assertThat(networks, hasItem(hostNetwork));
       assertThat(networks, not(hasItems(network1, network2)));
     }
-    
+
     // filter by label
     if (dockerApiVersionAtLeast("1.24")) {
       networks = sut.listNetworks(ListNetworksParam.withLabel("is-test"));
       assertThat(networks, not(hasItem(hostNetwork)));
       assertThat(networks, hasItems(network1, network2));
-      
+
       networks = sut.listNetworks(ListNetworksParam.withLabel("is-test", "true"));
       assertThat(networks, hasItem(network1));
       assertThat(networks, not(hasItem(network2)));
-      
+
       networks = sut.listNetworks(ListNetworksParam.withLabel("is-test", "false"));
       assertThat(networks, not(hasItems(network1, network2)));
     }
-    
+
     sut.removeNetwork(network1.id());
     sut.removeNetwork(network2.id());
   }
@@ -4974,7 +4974,7 @@ public class DefaultDockerClientTest {
     assertThat(sut.listSecrets().size(), equalTo(0));
 
     final String secretData = Base64.getEncoder().encodeToString("testdata".getBytes());
-    
+
     final Map<String, String> labels = ImmutableMap.of("foo", "bar", "1", "a");
 
     final SecretSpec secretSpec = SecretSpec.builder()
@@ -4982,11 +4982,11 @@ public class DefaultDockerClientTest {
         .data(secretData)
         .labels(labels)
         .build();
-    
+
     final SecretCreateResponse response = sut.createSecret(secretSpec);
     final String secretId = response.id();
     assertThat(secretId, is(notNullValue()));
-    
+
     final SecretSpec secretSpecConflict = SecretSpec.builder()
         .name("asecret")
         .data(secretData)
@@ -5276,7 +5276,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testInspectServiceEndpoint() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
-    
+
     final String name = randomName();
     final String imageName = "demo/test";
     final PortConfig.Builder portConfigBuilder = PortConfig.builder()
@@ -5401,24 +5401,24 @@ public class DefaultDockerClientTest {
     assertThat(services.size(), is(1));
     assertThat(services.get(0).spec().name(), is(serviceName));
   }
-  
+
   @Test
   public void testListServicesFilterByLabel() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
     final String serviceName = randomName();
-    
+
     Map<String, String> labels = new HashMap<>();
     labels.put("foo", "bar");
-    
+
     final ServiceSpec spec = createServiceSpec(serviceName, labels);
     sut.createService(spec);
 
     final List<Service> services = sut.listServices(Service.find().        labels(Map.of("foo", "baz"))
             .build());
-    
+
     assertThat(services.size(), is(1));
     assertThat(services.get(0).spec().labels().get("foo"), is("bar"));
-    
+
     final List<Service> notFoundServices = sut.listServices(Service.find()
             .labels(Map.of("foo", "baz"))
             .build());
@@ -5475,21 +5475,21 @@ public class DefaultDockerClientTest {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
     List<Node> nodes = sut.listNodes();
     assertThat(nodes.size(), greaterThanOrEqualTo(1));
-    
+
     Node nut = nodes.get(0);
     Date now = new Date();
     assertThat(nut.id(), allOf(notNullValue(), not("")));
     assertThat(nut.version().index(), allOf(notNullValue(), greaterThan(0L)));
     assertThat(nut.createdAt(), allOf(notNullValue(), lessThanOrEqualTo(now)));
     assertThat(nut.updatedAt(), allOf(notNullValue(), lessThanOrEqualTo(now)));
-    
+
     NodeSpec specs = nut.spec();
     assertThat(specs, notNullValue());
     assertThat(specs.name(), is(anything())); // Can be null if not set
     assertThat(specs.labels(), is(anything())); // Can be null if not set
     assertThat(specs.role(), isIn(new String [] {"manager", "worker"}));
     assertThat(specs.availability(), isIn(new String [] {"active", "pause", "drain"}));
-    
+
     NodeDescription desc = nut.description();
     assertThat(desc.hostname(), allOf(notNullValue(), not("")));
     assertThat(desc.platform(), notNullValue());
@@ -5498,13 +5498,13 @@ public class DefaultDockerClientTest {
     assertThat(desc.resources(), notNullValue());
     assertThat(desc.resources().memoryBytes(), greaterThan(0L));
     assertThat(desc.resources().nanoCpus(), greaterThan(0L));
-    
+
     EngineConfig engine = desc.engine();
     assertThat(engine, notNullValue());
     assertThat(engine.engineVersion(), allOf(notNullValue(), not("")));
     assertThat(engine.labels(), is(anything()));
     assertThat(engine.plugins().size(), greaterThanOrEqualTo(0));
-    
+
     for (EnginePlugin plugin : engine.plugins()) {
       assertThat(plugin.type(), allOf(notNullValue(), not("")));
       assertThat(plugin.name(), allOf(notNullValue(), not("")));
@@ -5557,10 +5557,10 @@ public class DefaultDockerClientTest {
   private ServiceSpec createServiceSpec(final String serviceName) {
     return this.createServiceSpec(serviceName, new HashMap<String, String>());
   }
-  
-  private ServiceSpec createServiceSpec(final String serviceName, 
+
+  private ServiceSpec createServiceSpec(final String serviceName,
       final Map<String, String> labels) {
-    
+
     final TaskSpec taskSpec = TaskSpec
         .builder()
         .containerSpec(ContainerSpec.builder().image("alpine")
@@ -5592,7 +5592,7 @@ public class DefaultDockerClientTest {
 
   private PoolStats getClientConnectionPoolStats(final DefaultDockerClient client) {
     return ((PoolingHttpClientConnectionManager) client.getClient().getConfiguration()
-        .getProperty(ApacheClientProperties.CONNECTION_MANAGER)).getTotalStats();
+        .getProperty(Apache5ClientProperties.CONNECTION_MANAGER)).getTotalStats();
   }
 
   private String createSleepingContainer() throws Exception {

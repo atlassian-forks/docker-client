@@ -10,6 +10,9 @@ Released January 16, 2019
 [1132]: https://github.com/spotify/docker-client/pull/1132
 [1111]: https://github.com/spotify/docker-client/pull/1111
 
+## 10.0.0-atlassian-1
+- Migration to Jersey 4.0.x, jersey-apache5-connector and httpclient 5
+
 ## 9.0.0-atlassian-1
 - Migration to jakarta namespace
 - Minimum required Java version is 17

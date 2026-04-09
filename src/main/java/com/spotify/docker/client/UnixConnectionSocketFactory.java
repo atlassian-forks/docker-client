@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 
@@ -37,6 +38,7 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.client5.http.ConnectTimeoutException;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
@@ -66,8 +68,24 @@ public class UnixConnectionSocketFactory implements ConnectionSocketFactory {
   }
 
   @Override
-  public UnixSocket createSocket(final HttpContext context) throws IOException {
-    return UnixSocketChannel.open().socket();
+  public Socket createSocket(final HttpContext context) throws IOException {
+    UnixSocketChannel unixSocketChannel = UnixSocketChannel.open();
+    return new UnixSocket(unixSocketChannel) {
+      @Override
+      public void connect(SocketAddress addr) throws IOException {
+        throw new UnsupportedOperationException("connect(SocketAddress) not supported, use connect(SocketAddress, int) instead");
+      }
+
+      @Override
+      public void connect(SocketAddress addr, int timeout) throws IOException {
+        this.setSoTimeout(timeout);
+        try {
+          getChannel().connect(new UnixSocketAddress(socketFile));
+        } catch (SocketTimeoutException e) {
+          throw new ConnectTimeoutException("SocketTimeoutException during channel connect operation: " + e.getMessage(), null);
+        }
+      }
+    };
   }
 
   @Override

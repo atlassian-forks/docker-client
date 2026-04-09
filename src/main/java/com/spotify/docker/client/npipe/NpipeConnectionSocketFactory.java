@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.URI;
 
 import org.apache.hc.core5.http.HttpHost;
@@ -61,7 +62,17 @@ public class NpipeConnectionSocketFactory implements ConnectionSocketFactory {
 
   @Override
   public Socket createSocket(final HttpContext context) throws IOException {
-    return new NamedPipeSocket();
+    return new NamedPipeSocket() {
+      @Override
+      public void connect(SocketAddress endpoint) throws IOException {
+        throw new UnsupportedOperationException("connect(SocketAddress) not supported, use connect(SocketAddress, int) instead");
+      }
+
+      @Override
+      public void connect(SocketAddress endpoint, int timeout) throws IOException {
+        super.connect(new NpipeSocketAddress(socketFile), timeout);
+      }
+    };
   }
 
   @Override

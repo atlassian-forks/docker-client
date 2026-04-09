@@ -137,6 +137,8 @@ import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.Proxy;
+import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -181,7 +183,14 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.DetachedSocketFactory;
+import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
+import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
 import org.apache.hc.client5.http.ConnectTimeoutException;
@@ -191,6 +200,11 @@ import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.core5.http.io.HttpConnectionFactory;
+import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
+import org.apache.hc.core5.pool.PoolReusePolicy;
+import org.apache.hc.core5.util.TimeValue;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.glassfish.jersey.apache5.connector.Apache5ClientProperties;
 import org.glassfish.jersey.apache5.connector.Apache5ConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
@@ -199,6 +213,8 @@ import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.net.ssl.SSLSocket;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
@@ -459,7 +475,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .setConnectTimeout((int) builder.connectTimeoutMillis, TimeUnit.MILLISECONDS)
         .setResponseTimeout((int) builder.readTimeoutMillis, TimeUnit.MILLISECONDS)
         .build();
-
+//todo
     final ClientConfig config = updateProxy(defaultConfig, builder)
         .connectorProvider(new Apache5ConnectorProvider())
         .property(Apache5ClientProperties.CONNECTION_MANAGER, cm)
@@ -546,19 +562,63 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     return fromNullable(uri.getHost()).or("localhost");
   }
 
+  private static Lookup<TlsSocketStrategy> adapt(final Lookup<org.apache.hc.client5.http.socket.ConnectionSocketFactory> lookup) {
+
+    return name -> {
+      final org.apache.hc.client5.http.socket.ConnectionSocketFactory sf = lookup.lookup(name);
+      return sf instanceof org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory ? (socket, target, port, attachment, context) ->
+                                                                                              (SSLSocket) ((org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory) sf).createLayeredSocket(socket, target, port, attachment, context) : null;
+    };
+  }
+
   private HttpClientConnectionManager getConnectionManager(Builder builder) {
     if (builder.uri.getScheme().equals(NPIPE_SCHEME)) {
+      final DefaultHttpClientConnectionOperator defaultHttpClientConnectionOperator = getHttpClientConnectionOperator(builder);
       final BasicHttpClientConnectionManager bm =
-          new BasicHttpClientConnectionManager(getSchemeRegistry(builder));
+          new BasicHttpClientConnectionManager(defaultHttpClientConnectionOperator, null);
       return bm;
     } else {
-      final PoolingHttpClientConnectionManager cm =
-          new PoolingHttpClientConnectionManager(getSchemeRegistry(builder));
+      final DefaultHttpClientConnectionOperator defaultHttpClientConnectionOperator = getHttpClientConnectionOperator(builder);
+      final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(
+              defaultHttpClientConnectionOperator,
+              null,
+              null,
+              null,
+              null
+      );
+
       // Use all available connections instead of artificially limiting ourselves to 2 per server.
       cm.setMaxTotal(builder.connectionPoolSize);
       cm.setDefaultMaxPerRoute(cm.getMaxTotal());
       return cm;
     }
+  }
+
+  private @NonNull DefaultHttpClientConnectionOperator getHttpClientConnectionOperator(Builder builder) {
+    Registry<ConnectionSocketFactory> schemeRegistry = getSchemeRegistry(builder);
+    DefaultHttpClientConnectionOperator defaultHttpClientConnectionOperator = new DefaultHttpClientConnectionOperator(
+            new DetachedSocketFactory() {
+              @Override
+              public Socket create(Proxy proxy) {
+                throw new UnsupportedOperationException("DetachedSocketFactory should only be used with create(String, Proxy)");
+              }
+
+              @Override
+              public Socket create(String schemeName, Proxy proxy) {
+                return Optional.fromNullable(schemeRegistry.lookup(schemeName)).transform(socketFactory -> {
+                  try {
+                    return socketFactory.createSocket(proxy, null);
+                  } catch (IOException e) {
+                    throw new RuntimeException(e);
+                  }
+                }).orNull();
+              }
+            },
+            null,
+            null,
+            adapt(schemeRegistry)
+    );
+    return defaultHttpClientConnectionOperator;
   }
 
   private Registry<ConnectionSocketFactory> getSchemeRegistry(final Builder builder) {

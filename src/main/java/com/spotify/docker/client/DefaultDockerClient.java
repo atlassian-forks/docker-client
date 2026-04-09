@@ -184,12 +184,10 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator;
-import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
 import org.apache.hc.client5.http.io.DetachedSocketFactory;
-import org.apache.hc.client5.http.io.HttpClientConnectionOperator;
-import org.apache.hc.client5.http.io.ManagedHttpClientConnection;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
 import org.apache.hc.core5.http.config.Lookup;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
@@ -200,10 +198,6 @@ import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
-import org.apache.hc.core5.http.io.HttpConnectionFactory;
-import org.apache.hc.core5.pool.PoolConcurrencyPolicy;
-import org.apache.hc.core5.pool.PoolReusePolicy;
-import org.apache.hc.core5.util.TimeValue;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.glassfish.jersey.apache5.connector.Apache5ClientProperties;
 import org.glassfish.jersey.apache5.connector.Apache5ConnectorProvider;
@@ -475,7 +469,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
         .setConnectTimeout((int) builder.connectTimeoutMillis, TimeUnit.MILLISECONDS)
         .setResponseTimeout((int) builder.readTimeoutMillis, TimeUnit.MILLISECONDS)
         .build();
-//todo
+
     final ClientConfig config = updateProxy(defaultConfig, builder)
         .connectorProvider(new Apache5ConnectorProvider())
         .property(Apache5ClientProperties.CONNECTION_MANAGER, cm)
@@ -2895,7 +2889,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new DockerRequestException(method, resource.getUri(), response.getStatus(),
                                        message(response), cause);
     } else if ((cause instanceof SocketTimeoutException)
-               || (cause instanceof ConnectTimeoutException)) {
+               || (cause instanceof ConnectTimeoutException)
+               || (cause instanceof ConnectionRequestTimeoutException)) {
       throw new DockerTimeoutException(method, resource.getUri(), ex);
     } else if ((cause instanceof InterruptedIOException)
                || (cause instanceof InterruptedException)) {

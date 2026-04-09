@@ -65,7 +65,7 @@ public class NpipeConnectionSocketFactory implements ConnectionSocketFactory {
     return new NamedPipeSocket() {
       @Override
       public void connect(SocketAddress endpoint) throws IOException {
-        throw new UnsupportedOperationException("connect(SocketAddress) not supported, use connect(SocketAddress, int) instead");
+        super.connect(new NpipeSocketAddress(socketFile));
       }
 
       @Override

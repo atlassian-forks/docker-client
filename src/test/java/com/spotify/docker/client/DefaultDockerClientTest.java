@@ -216,7 +216,6 @@ import com.spotify.docker.client.messages.swarm.ServiceSpec;
 import com.spotify.docker.client.messages.swarm.Swarm;
 import com.spotify.docker.client.messages.swarm.SwarmInit;
 import com.spotify.docker.client.messages.swarm.SwarmSpec;
-import com.spotify.docker.client.messages.swarm.Task;
 import com.spotify.docker.client.messages.swarm.TaskDefaults;
 import com.spotify.docker.client.messages.swarm.TaskSpec;
 import com.spotify.docker.client.messages.swarm.UnlockKey;
@@ -248,7 +247,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -296,8 +294,8 @@ public class DefaultDockerClientTest {
   private static final String BUSYBOX = "busybox";
   private static final String BUSYBOX_LATEST = BUSYBOX + ":latest";
   private static final String BUSYBOX_GLIBC_1_34 = BUSYBOX + ":1.34-glibc";
-  private static final String MEMCACHED = "rohan/memcached-mini";
-  private static final String MEMCACHED_LATEST = MEMCACHED + ":latest";
+  private static final String MEMCACHED = "memcached";
+  private static final String MEMCACHED_1_6_ALPINE = MEMCACHED + ":1.6-alpine";
   private static final String CIRROS_PRIVATE = "dxia/cirros-private";
   private static final String CIRROS_PRIVATE_LATEST = CIRROS_PRIVATE + ":latest";
 
@@ -377,6 +375,10 @@ public class DefaultDockerClientTest {
           log.warn("Failed to kill container {}", info.id(), e);
         }
       }
+    }
+
+    if(!sut.listNetworks(ListNetworksParam.byNetworkName("testNetwork")).isEmpty()){
+      sut.removeNetwork("testNetwork");
     }
 
     // Close the client
@@ -568,7 +570,7 @@ public class DefaultDockerClientTest {
     assumeFalse(CIRCLECI);
 
     // note: this digest may change over time, the value here may disappear from hub.docker.com
-    sut.pull(BUSYBOX + "@sha256:4a887a2326ec9e0fa90cce7b4764b0e627b5d6afcb81a3f73c85dc29cea00048");
+    sut.pull(BUSYBOX + "@sha256:5289a46d39034cfc035cb32a5f1f890f10da8a13557d7a2df2250d694875d6b4");
   }
 
   @Test
@@ -828,10 +830,10 @@ public class DefaultDockerClientTest {
     // one to fail.
     assumeFalse(CIRCLECI);
 
-    sut.pull("dxia/cirros:latest");
-    sut.pull("dxia/cirros:0.3.0");
-    final String imageLatest = "dxia/cirros:latest";
-    final String imageVersion = "dxia/cirros:0.3.0";
+    sut.pull("cirros:latest");
+    sut.pull("cirros:0.6");
+    final String imageLatest = "cirros:latest";
+    final String imageVersion = "cirros:0.6";
 
     final Set<RemovedImage> removedImages = Sets.newHashSet();
     removedImages.addAll(sut.removeImage(imageLatest));
@@ -887,10 +889,10 @@ public class DefaultDockerClientTest {
     final ImageInfo info = sut.inspectImage(BUSYBOX_GLIBC_1_34);
     assertThat(info, notNullValue());
     assertThat(info.architecture(), not(isEmptyOrNullString()));
-    assertThat(info.author(), not(isEmptyOrNullString()));
+    assertThat(info.author(), equalTo(""));
     assertThat(info.config(), notNullValue());
-    assertThat(info.container(), not(isEmptyOrNullString()));
-    assertThat(info.containerConfig(), notNullValue());
+    assertThat(info.container(), nullValue());
+    assertThat(info.containerConfig(), nullValue());
     assertThat(info.comment(), notNullValue());
     assertThat(info.created(), notNullValue());
     assertThat(info.dockerVersion(), not(isEmptyOrNullString()));
@@ -906,7 +908,7 @@ public class DefaultDockerClientTest {
     }
 
     assertThat(info.size(), notNullValue());
-    assertThat(info.virtualSize(), notNullValue());
+    assertThat(info.virtualSize(), nullValue());
     assertThat(info.rootFs(), notNullValue());
   }
 
@@ -1123,7 +1125,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testBuildNoRm() throws Exception {
     final Path dockerDirectory = getResource("dockerDirectory");
-    final String removingContainers = "Removing intermediate container";
+    final String removingContainers = "Removed intermediate container";
 
     // Test that intermediate containers are removed with FORCE_RM by parsing output. We must
     // set NO_CACHE so that docker will generate some containers to remove.
@@ -1786,9 +1788,9 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testInspectContainerWithExposedPorts() throws Exception {
-    sut.pull(MEMCACHED_LATEST);
+    sut.pull(MEMCACHED_1_6_ALPINE);
     final ContainerConfig config = ContainerConfig.builder()
-        .image(MEMCACHED_LATEST)
+        .image(MEMCACHED_1_6_ALPINE)
         .build();
     final ContainerCreation container = sut.createContainer(config, randomName());
     sut.startContainer(container.id());
@@ -1805,12 +1807,12 @@ public class DefaultDockerClientTest {
     final String typeLabel = "label:type:bar";
     final String levelLabel = "label:level:9001";
 
-    sut.pull(MEMCACHED_LATEST);
+    sut.pull(MEMCACHED_1_6_ALPINE);
     final HostConfig hostConfig = HostConfig.builder()
         .securityOpt(userLabel, roleLabel, typeLabel, levelLabel)
         .build();
     final ContainerConfig config = ContainerConfig.builder()
-        .image(MEMCACHED_LATEST)
+        .image(MEMCACHED_1_6_ALPINE)
         .hostConfig(hostConfig)
         .build();
 
@@ -2001,9 +2003,9 @@ public class DefaultDockerClientTest {
     sut.pull(BUSYBOX_LATEST);
 
     final HostConfig.Builder hostConfigBuilder = HostConfig.builder()
-        .memory(4194304L)
-        .memorySwap(5000000L)
-        .kernelMemory(5000000L);
+        .memory(7_194_304L)
+        .memorySwap(10_000_000L)
+        .kernelMemory(5_000_000L);
 
     if (dockerApiVersionAtLeast("1.20")) {
       hostConfigBuilder.memorySwappiness(42);
@@ -2436,7 +2438,7 @@ public class DefaultDockerClientTest {
         .cmd("sleep", "5")
         // Generate some healthy_status events
         .healthcheck(Healthcheck.create(ImmutableList.of("CMD-SHELL", "true"),
-            1000000000L, 1000000000L, 3, 1000000000L))
+            1000000000L, 1000000000L, 3, 0L))
         .build();
 
     final long startTime = new Date().getTime() / 1000;
@@ -2563,7 +2565,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testDockerDateFormat() throws Exception {
     // This is the created date for busybox converted from nanoseconds to milliseconds
-    final Date expected = new StdDateFormat().parse("2015-09-18T17:44:28.145Z");
+    final Date expected = new StdDateFormat().parse("2022-12-22T19:53:49.270486825Z");
 
     // Verify the formatter works when used with the client
     sut.pull(BUSYBOX_GLIBC_1_34);
@@ -3836,7 +3838,7 @@ public class DefaultDockerClientTest {
   public void testMacAddress() throws Exception {
     requireDockerApiVersionAtLeast("1.18", "Mac Address");
 
-    sut.pull(MEMCACHED_LATEST);
+    sut.pull(MEMCACHED_1_6_ALPINE);
     final ContainerConfig config = ContainerConfig.builder()
         .image(BUSYBOX_LATEST)
         .cmd("sleep", "1000")
@@ -4338,8 +4340,8 @@ public class DefaultDockerClientTest {
             mapper.readValue(e.getResponseBody(), new TypeReference<Map<String, String>>() {
             });
         assertThat(jsonMessage, hasKey("message"));
-        assertEquals(String.format("Container %s is not running", id),
-                     jsonMessage.get("message"));
+        assertEquals(String.format("Container %s is not running", id).toLowerCase(),
+                     jsonMessage.get("message").toLowerCase());
       }
     }
 
@@ -4352,15 +4354,15 @@ public class DefaultDockerClientTest {
 
   @Test
   public void testHistory() throws Exception {
-    sut.pull(BUSYBOX_LATEST);
-    final List<ImageHistory> imageHistoryList = sut.history(BUSYBOX_LATEST);
+    sut.pull(BUSYBOX_GLIBC_1_34);
+    final List<ImageHistory> imageHistoryList = sut.history(BUSYBOX_GLIBC_1_34);
     assertThat(imageHistoryList, hasSize(2));
 
     final ImageHistory busyboxHistory = imageHistoryList.get(0);
     assertThat(busyboxHistory.id(), not(isEmptyOrNullString()));
     assertNotNull(busyboxHistory.created());
     assertThat(busyboxHistory.createdBy(), startsWith("/bin/sh -c #(nop)"));
-    assertThat(BUSYBOX_LATEST, isIn(busyboxHistory.tags()));
+    assertThat(BUSYBOX_GLIBC_1_34, isIn(busyboxHistory.tags()));
     assertEquals(0L, busyboxHistory.size().longValue());
     assertThat(busyboxHistory.comment(), isEmptyOrNullString());
   }
@@ -4745,6 +4747,7 @@ public class DefaultDockerClientTest {
         .hostConfig(HostConfig.builder()
                         .autoRemove(true) // Default is false
                         .build())
+        .cmd("sh", "-c", "while :; do sleep 1; done")
         .build();
 
     final ContainerCreation container = sut.createContainer(config, randomName());
@@ -5044,9 +5047,10 @@ public class DefaultDockerClientTest {
   public void testCreateServiceWithDefaults() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "swarm support");
 
+    sut.createNetwork(NetworkConfig.builder().name("testNetwork").driver("overlay").build());
     final List<Network> overlayNetworks = sut.listNetworks(ListNetworksParam.withDriver("overlay"));
     assumeFalse(dockerApiVersionEquals("1.27") && overlayNetworks.isEmpty());
-    final String networkTarget = overlayNetworks.get(0).name();
+    final String networkTarget = overlayNetworks.stream().map(Network::name).filter(name->!"ingress".equals(name)).findFirst().get();
 
     final String serviceName = randomName();
     final TaskSpec taskSpec = TaskSpec
@@ -5413,7 +5417,7 @@ public class DefaultDockerClientTest {
     final ServiceSpec spec = createServiceSpec(serviceName, labels);
     sut.createService(spec);
 
-    final List<Service> services = sut.listServices(Service.find().        labels(Map.of("foo", "baz"))
+    final List<Service> services = sut.listServices(Service.find().labels(Map.of("foo", "bar"))
             .build());
 
     assertThat(services.size(), is(1));

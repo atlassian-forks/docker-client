@@ -28,6 +28,7 @@ import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 
+import com.google.common.annotations.VisibleForTesting;
 import jnr.unixsocket.UnixSocket;
 import jnr.unixsocket.UnixSocketAddress;
 import jnr.unixsocket.UnixSocketChannel;
@@ -38,7 +39,6 @@ import org.apache.hc.core5.annotation.ThreadingBehavior;
 import org.apache.hc.client5.http.ConnectTimeoutException;
 import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
 import org.apache.hc.core5.http.protocol.HttpContext;
-import org.apache.hc.core5.net.NamedEndpoint;
 import org.apache.hc.core5.util.TimeValue;
 
 /**
@@ -47,16 +47,24 @@ import org.apache.hc.core5.util.TimeValue;
 @Contract(threading = ThreadingBehavior.IMMUTABLE_CONDITIONAL)
 public class UnixConnectionSocketFactory implements ConnectionSocketFactory {
 
+  private static final SupplierWithIOException<UnixSocketChannel> UNIX_SOCKET_CHANNEL_SUPPLIER = ()->UnixSocketChannel.open();
   private File socketFile;
+  private final SupplierWithIOException<UnixSocketChannel> unixSocketChannelSupplier;
 
   public UnixConnectionSocketFactory(final URI socketUri) {
+    this(socketUri, UNIX_SOCKET_CHANNEL_SUPPLIER);
+  }
+
+  @VisibleForTesting
+  UnixConnectionSocketFactory(final URI socketUri, SupplierWithIOException<UnixSocketChannel> unixSocketChannelSupplier) {
     super();
 
     final String filename = socketUri.toString()
-        .replaceAll("^unix:///", "unix://localhost/")
-        .replaceAll("^unix://localhost", "");
+            .replaceAll("^unix:///", "unix://localhost/")
+            .replaceAll("^unix://localhost", "");
 
     this.socketFile = new File(filename);
+    this.unixSocketChannelSupplier = unixSocketChannelSupplier;
   }
 
   public static URI sanitizeUri(final URI uri) {
@@ -69,11 +77,15 @@ public class UnixConnectionSocketFactory implements ConnectionSocketFactory {
 
   @Override
   public Socket createSocket(final HttpContext context) throws IOException {
-    UnixSocketChannel unixSocketChannel = UnixSocketChannel.open();
+    UnixSocketChannel unixSocketChannel = unixSocketChannelSupplier.get();
     return new UnixSocket(unixSocketChannel) {
       @Override
       public void connect(SocketAddress addr) throws IOException {
-        throw new UnsupportedOperationException("connect(SocketAddress) not supported, use connect(SocketAddress, int) instead");
+        try {
+          getChannel().connect(new UnixSocketAddress(socketFile));
+        } catch (SocketTimeoutException e) {
+          throw new ConnectTimeoutException("SocketTimeoutException during channel connect operation: " + e.getMessage(), null);
+        }
       }
 
       @Override
@@ -106,5 +118,10 @@ public class UnixConnectionSocketFactory implements ConnectionSocketFactory {
       throw new ConnectTimeoutException("SocketTimeoutException during channel connect operation: " + e.getMessage(), host);
     }
     return socket;
+  }
+
+  @VisibleForTesting
+  interface SupplierWithIOException<T> {
+    T get() throws IOException;
   }
 }

@@ -2833,9 +2833,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       executor.shutdownNow();
       try {
         response.close();
-      } catch (ProcessingException e) {
+      } catch (ProcessingException | IndexOutOfBoundsException e) {
         // ignore, thrown by jnr-unixsocket when httpcomponent try to read after close
         // the socket is closed before this exception
+        // The IndexOutOfBoundsException can be thrown by the HttpClient5 during stream close on interruption.
       }
     }
   }

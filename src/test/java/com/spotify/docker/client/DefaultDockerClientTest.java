@@ -249,6 +249,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -395,9 +396,13 @@ public class DefaultDockerClientTest {
     assumeTrue(msg, dockerApiVersionAtLeast(required));
   }
 
-  private void requireStorageDriverNotAufs() throws Exception {
+  private void requireStorageDriverNotAufsAndXfsBackingFilesystem() throws Exception {
     Info info = sut.info();
     assumeFalse(info.storageDriver().equals("aufs"));
+    assumeTrue(info.driverStatus().stream()
+        .filter(s -> s.get(0).equals("Backing Filesystem"))
+        .map(s -> s.get(1))
+        .anyMatch(fs -> fs.equals("xfs")));
   }
 
   private boolean dockerApiVersionAtLeast(final String expected) throws Exception {
@@ -2020,7 +2025,7 @@ public class DefaultDockerClientTest {
     final String name = randomName();
     final ContainerCreation creation = sut.createContainer(config, name);
     final String id = creation.id();
-
+    final boolean swappinessNotSupported = Objects.requireNonNull(creation.warnings()).stream().anyMatch(s->s.toLowerCase().contains("your kernel does not support memory swappiness capabilities"));
     sut.startContainer(id);
 
     final HostConfig actual = sut.inspectContainer(id).hostConfig();
@@ -2032,11 +2037,17 @@ public class DefaultDockerClientTest {
       assertThat(actual.memory(), equalTo(expected.memory()));
       assertThat(actual.memorySwap(), equalTo(expected.memorySwap()));
     }
-    if (dockerApiVersionAtLeast("1.20")) {
+    if (!swappinessNotSupported && dockerApiVersionAtLeast("1.20")) {
       assertThat(actual.memorySwappiness(), equalTo(expected.memorySwappiness()));
+    } else {
+      assertThat(actual.memorySwappiness(), is(nullValue()));
     }
-    if (dockerApiVersionAtLeast("1.21")) {
+    //https://docs.docker.com/reference/api/engine/version-history/
+    //Removed the KernelMemory field from the POST /containers/create and POST /containers/{id}/update endpoints, any value it is set to will be ignored on API version v1.42 and up. Older API versions still accept this field, but may take no effect, depending on the kernel version and OCI runtime in use.
+    if (dockerApiVersionAtLeast("1.21") && dockerApiVersionLessThan("1.42")) {
       assertThat(actual.kernelMemory(), equalTo(expected.kernelMemory()));
+    } else {
+      assertThat(actual.kernelMemory(), is(nullValue()));
     }
   }
 
@@ -2591,7 +2602,7 @@ public class DefaultDockerClientTest {
         .build();
     final ContainerConfig containerConfig = ContainerConfig.builder()
         .image(imageName)
-        .exposedPorts(expose)
+        .exposedPorts(expose, "2375/tcp")
         .hostConfig(hostConfig)
         .build();
     final String containerName = randomName();
@@ -4619,8 +4630,12 @@ public class DefaultDockerClientTest {
 
     final ContainerCreation container = sut.createContainer(config, randomName());
     final ContainerInfo info = sut.inspectContainer(container.id());
-
-    assertThat(info.hostConfig().oomKillDisable(), is(true));
+    final boolean oomKillDisableDiscarded = container.warnings().stream().anyMatch(warning->warning.toLowerCase().contains("oomkilldisable discarded"));
+    if(!oomKillDisableDiscarded) {
+      assertThat(info.hostConfig().oomKillDisable(), is(nullValue()));
+    } else {
+      assertThat(info.hostConfig().oomKillDisable(), is(true));
+    }
   }
 
   @Test
@@ -4711,7 +4726,7 @@ public class DefaultDockerClientTest {
   @Test
   public void testStorageOpt() throws Exception {
     requireDockerApiVersionAtLeast("1.24", "StorageOpt");
-    requireStorageDriverNotAufs();
+    requireStorageDriverNotAufsAndXfsBackingFilesystem();
     // Doesn't work on Travis with Docker API >= v1.32 because storage driver doesn't have pquota
     // mount option enabled.
     assumeFalse(dockerApiVersionAtLeast("1.32") && TRAVIS);

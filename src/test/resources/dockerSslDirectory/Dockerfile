@@ -1,7 +1,7 @@
-FROM docker:1.12.1-dind
+FROM docker:24.0.7-dind
 
 ADD ca.pem /ca.pem
-ADD server.pem /server.pem
-ADD serverkey.pem /serverkey.pem
+ADD server-cert.pem /server-cert.pem
+ADD server-key.pem /server-key.pem
 
-CMD ["-b", "none", "--tlsverify", "--tlscacert=ca.pem", "--tlscert=server.pem", "--tlskey=serverkey.pem", "-H=0.0.0.0:2376"]
+CMD ["-b", "none", "--tlsverify", "--tlscacert=ca.pem", "--tlscert=server-cert.pem", "--tlskey=server-key.pem", "-H=0.0.0.0:2376"]

@@ -4631,8 +4631,8 @@ public class DefaultDockerClientTest {
     final ContainerCreation container = sut.createContainer(config, randomName());
     final ContainerInfo info = sut.inspectContainer(container.id());
     final boolean oomKillDisableDiscarded = container.warnings().stream().anyMatch(warning->warning.toLowerCase().contains("oomkilldisable discarded"));
-    if(!oomKillDisableDiscarded) {
-      assertThat(info.hostConfig().oomKillDisable(), is(nullValue()));
+    if(oomKillDisableDiscarded) {
+      assertThat(info.hostConfig().oomKillDisable(), is(false));
     } else {
       assertThat(info.hostConfig().oomKillDisable(), is(true));
     }

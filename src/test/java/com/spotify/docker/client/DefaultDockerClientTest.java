@@ -2602,7 +2602,7 @@ public class DefaultDockerClientTest {
         .build();
     final ContainerConfig containerConfig = ContainerConfig.builder()
         .image(imageName)
-        .exposedPorts(expose, "2375/tcp")
+        .exposedPorts(expose)
         .hostConfig(hostConfig)
         .build();
     final String containerName = randomName();
@@ -2633,17 +2633,7 @@ public class DefaultDockerClientTest {
     // connections on the port. Otherwise, this test will fail.
     // Even though we've checked that the container is running, this doesn't mean the process
     // inside the container is ready.
-    final long deadline =
-        System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(TimeUnit.MINUTES.toMillis(1));
-    while (System.nanoTime() < deadline) {
-      try (final Socket ignored = new Socket(host, Integer.parseInt(port))) {
-        break;
-      } catch (IOException ignored) {
-      }
-      Thread.sleep(500);
-    }
-
-    assertThat(c.ping(), equalTo("OK"));
+    await().atMost(1, TimeUnit.MINUTES).ignoreExceptions().until(c::ping, equalTo("OK"));
 
     sut.stopContainer(containerId, 10);
   }

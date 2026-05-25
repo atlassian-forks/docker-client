@@ -10,9 +10,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -137,6 +137,8 @@ import java.io.InputStreamReader;
 import java.io.InterruptedIOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.Proxy;
+import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -159,6 +161,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jakarta.ws.rs.ProcessingException;
@@ -177,27 +180,35 @@ import jakarta.ws.rs.core.Response;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.config.Registry;
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.conn.HttpClientConnectionManager;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.socket.PlainConnectionSocketFactory;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.glassfish.jersey.apache.connector.ApacheClientProperties;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.io.DefaultHttpClientConnectionOperator;
+import org.apache.hc.client5.http.io.DetachedSocketFactory;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.client5.http.ssl.TlsSocketStrategy;
+import org.apache.hc.core5.http.ConnectionRequestTimeoutException;
+import org.apache.hc.core5.http.config.Lookup;
+import org.apache.hc.core5.http.config.Registry;
+import org.apache.hc.core5.http.config.RegistryBuilder;
+import org.apache.hc.client5.http.ConnectTimeoutException;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.socket.ConnectionSocketFactory;
+import org.apache.hc.client5.http.socket.PlainConnectionSocketFactory;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.io.BasicHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.checkerframework.checker.nullness.qual.NonNull;
+import org.glassfish.jersey.apache5.connector.Apache5ClientProperties;
+import org.glassfish.jersey.apache5.connector.Apache5ConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.net.ssl.SSLSocket;
 
 public class DefaultDockerClient implements DockerClient, Closeable {
 
@@ -284,7 +295,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
   }
 
-  
+
   /**
    * Hack: this {@link ProgressHandler} is meant to capture the image ID
    * of an image being built.
@@ -308,7 +319,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     @Override
     public void progress(ProgressMessage message) throws DockerException {
       delegate.progress(message);
-      
+
       final String id = message.buildImageId();
       if (id != null) {
         imageId = id;
@@ -454,22 +465,22 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     final HttpClientConnectionManager noTimeoutCm = getConnectionManager(builder);
 
     final RequestConfig requestConfig = RequestConfig.custom()
-        .setConnectionRequestTimeout((int) builder.connectTimeoutMillis)
-        .setConnectTimeout((int) builder.connectTimeoutMillis)
-        .setSocketTimeout((int) builder.readTimeoutMillis)
+        .setConnectionRequestTimeout((int) builder.connectTimeoutMillis, TimeUnit.MILLISECONDS)
+        .setConnectTimeout((int) builder.connectTimeoutMillis, TimeUnit.MILLISECONDS)
+        .setResponseTimeout((int) builder.readTimeoutMillis, TimeUnit.MILLISECONDS)
         .build();
 
     final ClientConfig config = updateProxy(defaultConfig, builder)
-        .connectorProvider(new ApacheConnectorProvider())
-        .property(ApacheClientProperties.CONNECTION_MANAGER, cm)
-        .property(ApacheClientProperties.REQUEST_CONFIG, requestConfig);
+        .connectorProvider(new Apache5ConnectorProvider())
+        .property(Apache5ClientProperties.CONNECTION_MANAGER, cm)
+        .property(Apache5ClientProperties.REQUEST_CONFIG, requestConfig);
 
     if (builder.registryAuthSupplier == null) {
       this.registryAuthSupplier = new FixedRegistryAuthSupplier();
     } else {
       this.registryAuthSupplier = builder.registryAuthSupplier;
     }
-    
+
     if (builder.getRequestEntityProcessing() != null) {
       config.property(ClientProperties.REQUEST_ENTITY_PROCESSING, builder.requestEntityProcessing);
     }
@@ -482,12 +493,12 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     // Workaround: instead create a client with infinite read timeout,
     // and use it for waitContainer, stopContainer, attachContainer, logs, and build
     final RequestConfig noReadTimeoutRequestConfig = RequestConfig.copy(requestConfig)
-        .setSocketTimeout((int) NO_TIMEOUT)
+        .setResponseTimeout((int) NO_TIMEOUT, TimeUnit.MILLISECONDS)
         .build();
     this.noTimeoutClient = ClientBuilder.newBuilder()
         .withConfig(config)
-        .property(ApacheClientProperties.CONNECTION_MANAGER, noTimeoutCm)
-        .property(ApacheClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
+        .property(Apache5ClientProperties.CONNECTION_MANAGER, noTimeoutCm)
+        .property(Apache5ClientProperties.REQUEST_CONFIG, noReadTimeoutRequestConfig)
         .build();
 
     this.headers = new HashMap<>(builder.headers());
@@ -545,19 +556,63 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     return fromNullable(uri.getHost()).or("localhost");
   }
 
+  private static Lookup<TlsSocketStrategy> adapt(final Lookup<org.apache.hc.client5.http.socket.ConnectionSocketFactory> lookup) {
+
+    return name -> {
+      final org.apache.hc.client5.http.socket.ConnectionSocketFactory sf = lookup.lookup(name);
+      return sf instanceof org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory ? (socket, target, port, attachment, context) ->
+                                                                                              (SSLSocket) ((org.apache.hc.client5.http.socket.LayeredConnectionSocketFactory) sf).createLayeredSocket(socket, target, port, attachment, context) : null;
+    };
+  }
+
   private HttpClientConnectionManager getConnectionManager(Builder builder) {
     if (builder.uri.getScheme().equals(NPIPE_SCHEME)) {
-      final BasicHttpClientConnectionManager bm = 
-          new BasicHttpClientConnectionManager(getSchemeRegistry(builder));
+      final DefaultHttpClientConnectionOperator defaultHttpClientConnectionOperator = getHttpClientConnectionOperator(builder);
+      final BasicHttpClientConnectionManager bm =
+          new BasicHttpClientConnectionManager(defaultHttpClientConnectionOperator, null);
       return bm;
     } else {
-      final PoolingHttpClientConnectionManager cm =
-          new PoolingHttpClientConnectionManager(getSchemeRegistry(builder));
+      final DefaultHttpClientConnectionOperator defaultHttpClientConnectionOperator = getHttpClientConnectionOperator(builder);
+      final PoolingHttpClientConnectionManager cm = new PoolingHttpClientConnectionManager(
+              defaultHttpClientConnectionOperator,
+              null,
+              null,
+              null,
+              null
+      );
+
       // Use all available connections instead of artificially limiting ourselves to 2 per server.
       cm.setMaxTotal(builder.connectionPoolSize);
       cm.setDefaultMaxPerRoute(cm.getMaxTotal());
       return cm;
     }
+  }
+
+  private @NonNull DefaultHttpClientConnectionOperator getHttpClientConnectionOperator(Builder builder) {
+    Registry<ConnectionSocketFactory> schemeRegistry = getSchemeRegistry(builder);
+    DefaultHttpClientConnectionOperator defaultHttpClientConnectionOperator = new DefaultHttpClientConnectionOperator(
+            new DetachedSocketFactory() {
+              @Override
+              public Socket create(Proxy proxy) {
+                throw new UnsupportedOperationException("DetachedSocketFactory should only be used with create(String, Proxy)");
+              }
+
+              @Override
+              public Socket create(String schemeName, Proxy proxy) {
+                return Optional.fromNullable(schemeRegistry.lookup(schemeName)).transform(socketFactory -> {
+                  try {
+                    return socketFactory.createSocket(proxy, null);
+                  } catch (IOException e) {
+                    throw new RuntimeException(e);
+                  }
+                }).orNull();
+              }
+            },
+            null,
+            null,
+            adapt(schemeRegistry)
+    );
+    return defaultHttpClientConnectionOperator;
   }
 
   private Registry<ConnectionSocketFactory> getSchemeRegistry(final Builder builder) {
@@ -577,7 +632,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     if (builder.uri.getScheme().equals(UNIX_SCHEME)) {
       registryBuilder.register(UNIX_SCHEME, new UnixConnectionSocketFactory(builder.uri));
     }
-    
+
     if (builder.uri.getScheme().equals(NPIPE_SCHEME)) {
       registryBuilder.register(NPIPE_SCHEME, new NpipeConnectionSocketFactory(builder.uri));
     }
@@ -1493,7 +1548,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     try (final CompressedDirectory compressedDirectory = CompressedDirectory.create(directory);
          final InputStream fileStream = Files.newInputStream(compressedDirectory.file())) {
-        
+
       requestAndTail(POST, buildHandler, resource,
                      resource.request(APPLICATION_JSON_TYPE)
                          .header("X-Registry-Config",
@@ -1585,7 +1640,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     resource = addParameters(resource, params);
 
     try {
-      final CloseableHttpClient client = (CloseableHttpClient) ApacheConnectorProvider
+      final CloseableHttpClient client = (CloseableHttpClient) Apache5ConnectorProvider
           .getHttpClient(noTimeoutClient);
       final CloseableHttpResponse response = client.execute(new HttpGet(resource.getUri()));
       return new EventStream(response, objectMapper());
@@ -1955,7 +2010,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throws DockerException, InterruptedException {
     updateService(serviceId, version, spec, registryAuthSupplier.authForSwarm());
   }
-  
+
   @Override
   public void updateService(final String serviceId, final Long version, final ServiceSpec spec,
                                              final RegistryAuth config)
@@ -2778,9 +2833,10 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       executor.shutdownNow();
       try {
         response.close();
-      } catch (ProcessingException e) {
+      } catch (ProcessingException | IndexOutOfBoundsException e) {
         // ignore, thrown by jnr-unixsocket when httpcomponent try to read after close
         // the socket is closed before this exception
+        // The IndexOutOfBoundsException can be thrown by the HttpClient5 during stream close on interruption.
       }
     }
   }
@@ -2792,7 +2848,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     Response response = request(method, Response.class, resource, request, entity);
     tailResponse(method, response, handler, resource);
   }
-  
+
   private void requestAndTail(final String method, final ProgressHandler handler,
                               final WebTarget resource, final Invocation.Builder request)
       throws DockerException, InterruptedException {
@@ -2834,7 +2890,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       throw new DockerRequestException(method, resource.getUri(), response.getStatus(),
                                        message(response), cause);
     } else if ((cause instanceof SocketTimeoutException)
-               || (cause instanceof ConnectTimeoutException)) {
+               || (cause instanceof ConnectTimeoutException)
+               || (cause instanceof ConnectionRequestTimeoutException)) {
       throw new DockerTimeoutException(method, resource.getUri(), ex);
     } else if ((cause instanceof InterruptedIOException)
                || (cause instanceof InterruptedException)) {
@@ -3163,14 +3220,14 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     public Map<String, Object> headers() {
       return headers;
     }
-    
+
     /**
-     * Allows setting transfer encoding. CHUNKED does not send the content-length header 
+     * Allows setting transfer encoding. CHUNKED does not send the content-length header
      * while BUFFERED does.
-     * 
-     * <p>By default ApacheConnectorProvider uses CHUNKED mode. Some Docker API end-points 
+     *
+     * <p>By default ApacheConnectorProvider uses CHUNKED mode. Some Docker API end-points
      * seems to fail when no content-length is specified but a body is sent.
-     * 
+     *
      * @param requestEntityProcessing is the requested entity processing to use when calling docker
      *     daemon (tcp protocol).
      * @return Builder
@@ -3180,7 +3237,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       this.requestEntityProcessing = requestEntityProcessing;
       return this;
     }
-    
+
     public RequestEntityProcessing getRequestEntityProcessing() {
       return this.requestEntityProcessing;
     }

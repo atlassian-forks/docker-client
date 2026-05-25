@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,8 +35,9 @@ import java.nio.channels.SocketChannel;
 
 import javax.net.ssl.SSLSocket;
 
-import org.apache.http.HttpHost;
-import org.apache.http.protocol.HttpContext;
+import org.apache.hc.core5.http.HttpHost;
+import org.apache.hc.core5.http.protocol.HttpContext;
+import org.apache.hc.core5.util.TimeValue;
 import org.hamcrest.core.IsInstanceOf;
 import org.junit.Before;
 import org.junit.Rule;
@@ -69,7 +70,7 @@ public class NpipeConnectionSocketFactoryTest {
   public void testConnectSocket() throws Exception {
     final NamedPipeSocket npipeSocket = mock(NamedPipeSocket.class);
     when(npipeSocket.getChannel()).thenReturn(mock(SocketChannel.class));
-    final Socket socket = sut.connectSocket(10, npipeSocket, HttpHost.create("http://foo.com"),
+    final Socket socket = sut.connectSocket(TimeValue.ofMilliseconds(10), npipeSocket, HttpHost.create("http://foo.com"),
         mock(InetSocketAddress.class), mock(InetSocketAddress.class), mock(HttpContext.class));
     assertThat(socket, IsInstanceOf.instanceOf(NamedPipeSocket.class));
     assertThat((NamedPipeSocket) socket, equalTo(npipeSocket));
@@ -77,7 +78,7 @@ public class NpipeConnectionSocketFactoryTest {
 
   @Test(expected = AssertionError.class)
   public void testConnectSocketNotUnixSocket() throws Exception {
-    sut.connectSocket(10, mock(SSLSocket.class), HttpHost.create("http://foo.com"),
+    sut.connectSocket(TimeValue.ofMilliseconds(10), mock(SSLSocket.class), HttpHost.create("http://foo.com"),
         mock(InetSocketAddress.class), mock(InetSocketAddress.class), mock(HttpContext.class));
   }
 

@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -35,27 +35,35 @@ import jakarta.annotation.Nullable;
 @JsonAutoDetect(fieldVisibility = ANY, getterVisibility = NONE, setterVisibility = NONE)
 public abstract class ImageInfo {
 
+  @Nullable
   @JsonProperty("Id")
   public abstract String id();
 
+  @Nullable
   @JsonProperty("Parent")
   public abstract String parent();
 
+  @Nullable
   @JsonProperty("Comment")
   public abstract String comment();
 
+  @Nullable
   @JsonProperty("Created")
   public abstract Date created();
 
+  @Nullable
   @JsonProperty("Container")
   public abstract String container();
 
+  @Nullable
   @JsonProperty("ContainerConfig")
   public abstract ContainerConfig containerConfig();
 
+  @Nullable
   @JsonProperty("DockerVersion")
   public abstract String dockerVersion();
 
+  @Nullable
   @JsonProperty("Author")
   public abstract String author();
 
@@ -71,6 +79,7 @@ public abstract class ImageInfo {
   @JsonProperty("Size")
   public abstract Long size();
 
+  @Nullable
   @JsonProperty("VirtualSize")
   public abstract Long virtualSize();
 

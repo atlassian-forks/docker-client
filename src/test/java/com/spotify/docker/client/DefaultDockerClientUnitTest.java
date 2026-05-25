@@ -575,6 +575,8 @@ public class DefaultDockerClientUnitTest {
         // build() calls /version to check what format of header to send
         enqueueServerApiVersion("1.28");
         enqueueServerApiEmptyResponse(503);
+        //by default httpclient retries 1 time on 503 response
+        enqueueServerApiEmptyResponse(503);
 
         dockerClient.inspectNode("24ifsmvkjbyhk");
     }
@@ -712,6 +714,8 @@ public class DefaultDockerClientUnitTest {
         final DefaultDockerClient dockerClient = new DefaultDockerClient(builder);
 
         enqueueServerApiVersion("1.24");
+        enqueueServerApiEmptyResponse(503);
+        //by default httpclient retries 1 time on 503 response
         enqueueServerApiEmptyResponse(503);
 
         dockerClient.deleteNode("node-1234");
@@ -994,6 +998,11 @@ public class DefaultDockerClientUnitTest {
                 .setResponseCode(503)
                 .addHeader("Content-Type", "application/json")
         );
+        //by default httpclient retries 1 time on 503 response
+        server.enqueue(new MockResponse()
+                .setResponseCode(503)
+                .addHeader("Content-Type", "application/json")
+        );
 
         dockerClient.inspectConfig("ktnbjxoalbkvbvedmg1urrz8h");
     }
@@ -1032,6 +1041,11 @@ public class DefaultDockerClientUnitTest {
 
         enqueueServerApiVersion("1.30");
 
+        server.enqueue(new MockResponse()
+                .setResponseCode(503)
+                .addHeader("Content-Type", "application/json")
+        );
+        //by default httpclient retries 1 time on 503 response
         server.enqueue(new MockResponse()
                 .setResponseCode(503)
                 .addHeader("Content-Type", "application/json")

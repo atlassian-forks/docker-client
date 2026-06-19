@@ -24,8 +24,8 @@ import static com.google.common.io.ByteStreams.copy;
 import static com.google.common.io.ByteStreams.nullOutputStream;
 import static com.spotify.docker.client.ObjectMapperProvider.objectMapper;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.MappingIterator;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.MappingIterator;
 import com.spotify.docker.client.exceptions.DockerException;
 import com.spotify.docker.client.exceptions.DockerTimeoutException;
 import com.spotify.docker.client.messages.ProgressMessage;
@@ -42,18 +42,16 @@ class ProgressStream implements Closeable {
   private final InputStream stream;
   private final MappingIterator<ProgressMessage> iterator;
 
-  ProgressStream(final InputStream stream) throws IOException {
+  ProgressStream(final InputStream stream) {
     this.stream = stream;
-    final JsonParser parser = objectMapper().getFactory().createParser(stream);
+    final JsonParser parser = objectMapper().createParser(stream);
     iterator = objectMapper().readValues(parser, ProgressMessage.class);
   }
 
   public boolean hasNextMessage(final String method, final URI uri) throws DockerException {
     try {
       return iterator.hasNextValue();
-    } catch (SocketTimeoutException e) {
-      throw new DockerTimeoutException(method, uri, e);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new DockerException(e);
     }
   }
@@ -61,9 +59,7 @@ class ProgressStream implements Closeable {
   public ProgressMessage nextMessage(final String method, final URI uri) throws DockerException {
     try {
       return iterator.nextValue();
-    } catch (SocketTimeoutException e) {
-      throw new DockerTimeoutException(method, uri, e);
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new DockerException(e);
     }
   }
@@ -81,7 +77,7 @@ class ProgressStream implements Closeable {
   @Override
   public void close() throws IOException {
     // Jersey will close the stream and release the connection after we read all the data.
-    // We cannot call the stream's close method because it an instance of UncloseableInputStream,
+    // We cannot call the stream's close method because it is an instance of UncloseableInputStream,
     // where close is a no-op.
     copy(stream, nullOutputStream());
   }

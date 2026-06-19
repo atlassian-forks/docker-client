@@ -22,7 +22,7 @@ package com.spotify.docker.client;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableCollection;
 import com.spotify.docker.client.messages.DockerCredentialHelperAuth;
@@ -184,7 +184,7 @@ public class DockerConfigReader {
     if (!(hasAuths || hasCredHelpers || hasCredsStore)) {
       try {
         return MAPPER.readValue(configPath.toFile(), RegistryConfigs.class);
-      } catch (IOException ignored) {
+      } catch (Exception ignored) {
         // Looks like that failed to parse.
         // Eat the exception, fall through, and return empty object.
       }

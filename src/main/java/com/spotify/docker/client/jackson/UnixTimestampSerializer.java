@@ -20,10 +20,10 @@
 
 package com.spotify.docker.client.jackson;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
 
 import java.io.IOException;
 import java.util.Date;
@@ -32,16 +32,13 @@ import java.util.Date;
  * A {@link Date} serializer that outputs seconds since epoch.
  * The inverse of {@link UnixTimestampDeserializer}.
  */
-public class UnixTimestampSerializer extends JsonSerializer<Date> {
+public class UnixTimestampSerializer extends ValueSerializer<Date> {
 
   private UnixTimestampSerializer() {
   }
 
   @Override
-  public void serialize(final Date date,
-                        final JsonGenerator gen,
-                        final SerializerProvider serializers)
-      throws IOException, JsonProcessingException {
-    gen.writeNumber(date.getTime() / 1000);
+  public void serialize(Date value, JsonGenerator gen, SerializationContext ctxt) throws JacksonException {
+    gen.writeNumber(value.getTime()/1000);
   }
 }

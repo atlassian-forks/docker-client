@@ -25,7 +25,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import com.spotify.docker.client.ObjectMapperProvider;
 import org.junit.Test;

@@ -23,7 +23,7 @@ package com.spotify.docker.client.messages;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.spotify.docker.client.ObjectMapperProvider;
 
 import java.io.IOException;

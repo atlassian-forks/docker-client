@@ -20,8 +20,8 @@
 
 package com.spotify.docker.client;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import com.spotify.docker.client.DockerCredentialHelper.CredentialHelperDelegate;
 import com.spotify.docker.client.messages.DockerCredentialHelperAuth;

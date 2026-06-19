@@ -22,7 +22,7 @@ package com.spotify.docker.client.messages.swarm;
 
 import static com.spotify.docker.FixtureUtil.fixture;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.spotify.docker.client.ObjectMapperProvider;
 
 import org.junit.Test;

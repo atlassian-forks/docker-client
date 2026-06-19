@@ -42,10 +42,9 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM_TYPE;
 import static jakarta.ws.rs.core.MediaType.TEXT_PLAIN_TYPE;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.JsonNodeFactory;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -207,6 +206,7 @@ import org.glassfish.jersey.client.RequestEntityProcessing;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
 
 import javax.net.ssl.SSLSocket;
 
@@ -341,8 +341,8 @@ public class DefaultDockerClient implements DockerClient, Closeable {
   private static final int DEFAULT_CONNECTION_POOL_SIZE = 100;
 
   private final ClientConfig defaultConfig = new ClientConfig(
+      Jackson3XmlBindJsonProvider.class,
       ObjectMapperProvider.class,
-      JacksonFeature.class,
       LogsResponseReader.class,
       ProgressResponseReader.class);
 
@@ -761,7 +761,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       if (!unencodedFilters.isEmpty()) {
         return urlEncode(unencodedFilters);
       }
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new DockerException(e);
     }
     return null;
@@ -1713,18 +1713,18 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     final StringWriter writer = new StringWriter();
     try {
-      final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
+      final JsonGenerator generator = objectMapper().createGenerator(writer);
       generator.writeStartObject();
 
       for (final ExecCreateParam param : params) {
         if (param.value().equals("true") || param.value().equals("false")) {
-          generator.writeBooleanField(param.name(), Boolean.valueOf(param.value()));
+          generator.writeBooleanProperty(param.name(), Boolean.valueOf(param.value()));
         } else {
-          generator.writeStringField(param.name(), param.value());
+          generator.writeStringProperty(param.name(), param.value());
         }
       }
 
-      generator.writeArrayFieldStart("Cmd");
+      generator.writeArrayPropertyStart("Cmd");
       for (final String s : cmd) {
         generator.writeString(s);
       }
@@ -1732,7 +1732,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
       generator.writeEndObject();
       generator.close();
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new DockerException(e);
     }
 
@@ -1759,16 +1759,16 @@ public class DefaultDockerClient implements DockerClient, Closeable {
 
     final StringWriter writer = new StringWriter();
     try {
-      final JsonGenerator generator = objectMapper().getFactory().createGenerator(writer);
+      final JsonGenerator generator = objectMapper().createGenerator(writer);
       generator.writeStartObject();
 
       for (final ExecStartParameter param : params) {
-        generator.writeBooleanField(param.getName(), true);
+        generator.writeBooleanProperty(param.getName(), true);
       }
 
       generator.writeEndObject();
       generator.close();
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new DockerException(e);
     }
 
@@ -2923,10 +2923,9 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       return "null";
     }
     try {
-      return Base64.encodeBase64String(ObjectMapperProvider
-                                       .objectMapper()
+      return Base64.encodeBase64String(objectMapper()
                                        .writeValueAsBytes(registryAuth));
-    } catch (JsonProcessingException ex) {
+    } catch (JacksonException ex) {
       throw new DockerException("Could not encode X-Registry-Auth header", ex);
     }
   }
@@ -2938,7 +2937,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
     }
     try {
       String authRegistryJson =
-          ObjectMapperProvider.objectMapper().writeValueAsString(registryConfigs.configs());
+          objectMapper().writeValueAsString(registryConfigs.configs());
 
       final String apiVersion = version().apiVersion();
       final int versionComparison = compareVersion(apiVersion, "1.19");
@@ -2952,7 +2951,7 @@ public class DefaultDockerClient implements DockerClient, Closeable {
       }
 
       return Base64.encodeBase64String(authRegistryJson.getBytes(StandardCharsets.UTF_8));
-    } catch (JsonProcessingException | InterruptedException ex) {
+    } catch (JacksonException | InterruptedException ex) {
       throw new DockerException("Could not encode X-Registry-Config header", ex);
     }
   }

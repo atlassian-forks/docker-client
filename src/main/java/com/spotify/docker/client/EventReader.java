@@ -20,8 +20,8 @@
 
 package com.spotify.docker.client;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.ObjectMapper;
 import com.spotify.docker.client.messages.Event;
 
 import java.io.Closeable;
@@ -42,7 +42,7 @@ public class EventReader implements Closeable {
 
   public Event nextMessage() throws IOException {
     if (this.parser == null) {
-      this.parser = objectMapper.getFactory().createParser(response.getEntity().getContent());
+      this.parser = objectMapper.createParser(response.getEntity().getContent());
     }
 
     // If the parser is closed, there's no new event

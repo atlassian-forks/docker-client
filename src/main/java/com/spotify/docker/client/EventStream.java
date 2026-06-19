@@ -20,7 +20,7 @@
 
 package com.spotify.docker.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.google.common.base.Throwables;
 import com.google.common.collect.AbstractIterator;
 import com.spotify.docker.client.messages.Event;

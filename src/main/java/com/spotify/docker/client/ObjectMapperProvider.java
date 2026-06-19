@@ -1,130 +1,127 @@
-/*-
- * -\-\-
- * docker-client
- * --
- * Copyright (C) 2016 Spotify AB
- * --
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * -/-/-
- */
-
 package com.spotify.docker.client;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.json.JsonFactory;
+import tools.jackson.databind.AnnotationIntrospector;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.module.SimpleModule;
+import tools.jackson.datatype.guava.GuavaModule;
+import tools.jackson.module.jakarta.xmlbind.JakartaXmlBindAnnotationIntrospector;
 
-import java.io.IOException;
+import jakarta.ws.rs.ext.ContextResolver;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.ext.ContextResolver;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-@Produces(MediaType.APPLICATION_JSON)
-@SuppressWarnings({"rawtypes", "unchecked"})
 public class ObjectMapperProvider implements ContextResolver<ObjectMapper> {
+    private static final SimpleModule MODULE = new SimpleModule();
 
-  private static final Logger log = LoggerFactory.getLogger(ObjectMapperProvider.class);
-
-  private static final Function<? super Object, ?> EMPTY_MAP = new Function<Object, Object>() {
-    @Override
-    public Object apply(final Object input) {
-      return Collections.emptyMap();
+    static {
+        MODULE.addSerializer(Set.class, new SetSerializer());
+        MODULE.addDeserializer(Set.class, new SetDeserializer());
+        MODULE.addSerializer(ImmutableSet.class, new ImmutableSetSerializer());
+        MODULE.addDeserializer(ImmutableSet.class, new ImmutableSetDeserializer());
     }
-  };
 
-  private static final SimpleModule MODULE = new SimpleModule();
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = createObjectMapper();
 
-  static {
-    try {
-      MODULE.addSerializer(Set.class, new SetSerializer());
-      MODULE.addDeserializer(Set.class, new SetDeserializer());
-      MODULE.addSerializer(ImmutableSet.class, new ImmutableSetSerializer());
-      MODULE.addDeserializer(ImmutableSet.class, new ImmutableSetDeserializer());
-      OBJECT_MAPPER.registerModule(new GuavaModule());
-      OBJECT_MAPPER.registerModule(MODULE);
-      OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-      OBJECT_MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-    } catch (Throwable t) {
-      log.error("Failure during static initialization", t);
-      throw t;
+    public ObjectMapperProvider() {
     }
-  }
-
-  @Override
-  public ObjectMapper getContext(Class<?> type) {
-    return OBJECT_MAPPER;
-  }
-
-  public static ObjectMapper objectMapper() {
-    return OBJECT_MAPPER;
-  }
-
-  private static class SetSerializer extends JsonSerializer<Set> {
 
     @Override
-    public void serialize(final Set value, final JsonGenerator jgen,
-                          final SerializerProvider provider) throws IOException {
-      final Map map = (value == null) ? null : Maps.asMap(value, EMPTY_MAP);
-      OBJECT_MAPPER.writeValue(jgen, map);
+    public ObjectMapper getContext(Class<?> type) {
+        return OBJECT_MAPPER;
     }
-  }
 
-  private static class SetDeserializer extends JsonDeserializer<Set> {
-
-    @Override
-    public Set<?> deserialize(final JsonParser jp, final DeserializationContext ctxt)
-        throws IOException {
-      final Map map = OBJECT_MAPPER.readValue(jp, Map.class);
-      return (map == null) ? null : map.keySet();
+    public static ObjectMapper objectMapper() {
+        return OBJECT_MAPPER;
     }
-  }
 
-  private static class ImmutableSetSerializer extends JsonSerializer<ImmutableSet> {
-
-    @Override
-    public void serialize(final ImmutableSet value, final JsonGenerator jgen,
-                          final SerializerProvider provider) throws IOException {
-      final Map map = (value == null) ? null : Maps.asMap(value, EMPTY_MAP);
-      OBJECT_MAPPER.writeValue(jgen, map);
+    private static AnnotationIntrospector createJacksonJaxbAnnotationIntrospector() {
+        final AnnotationIntrospector jacksonIntrospector = new JacksonAnnotationIntrospector();
+        final AnnotationIntrospector jaxbIntrospector = new JakartaXmlBindAnnotationIntrospector();
+        return AnnotationIntrospector.pair(jacksonIntrospector, jaxbIntrospector);
     }
-  }
 
-  private static class ImmutableSetDeserializer extends JsonDeserializer<ImmutableSet> {
+    public static JsonMapper createObjectMapper() {
+        JsonFactory jsonFactory = JsonFactory.builderWithJackson2Defaults()
+                .build();
 
-    @Override
-    public ImmutableSet<?> deserialize(final JsonParser jp, final DeserializationContext ctxt)
-        throws IOException {
-      final Map map = OBJECT_MAPPER.readValue(jp, Map.class);
-      return (map == null) ? null : ImmutableSet.copyOf(map.keySet());
+        return JsonMapper.builder(jsonFactory)
+                .configureForJackson2()
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                .changeDefaultPropertyInclusion(incl -> incl.withContentInclusion(JsonInclude.Include.NON_NULL).withValueInclusion(JsonInclude.Include.NON_NULL))
+                .findAndAddModules()
+                .addModule(new GuavaModule())
+                .addModule(MODULE)
+                .annotationIntrospector(createJacksonJaxbAnnotationIntrospector())
+                .build();
     }
-  }
+
+
+
+    private static final Function<? super Object, ?> EMPTY_MAP = (Function<Object, Object>) input -> Collections.emptyMap();
+
+    private static class SetSerializer extends ValueSerializer<Set> {
+        @Override
+        public void serialize(Set value, tools.jackson.core.JsonGenerator gen, SerializationContext ctxt) throws JacksonException {
+            final Map map = (value == null) ? null : Maps.asMap(value, EMPTY_MAP);
+            ctxt.writeValue(gen, map);
+        }
+
+        @Override
+        public Class<?> handledType() {
+            return Set.class;
+        }
+    }
+
+    private static class SetDeserializer extends ValueDeserializer<Set> {
+        @Override
+        public Set deserialize(tools.jackson.core.JsonParser jp, tools.jackson.databind.DeserializationContext ctxt) throws JacksonException {
+            final Map map = ctxt.readValue(jp, Map.class);
+            return (map == null) ? null : map.keySet();
+        }
+
+        @Override
+        public Class<?> handledType() {
+            return Set.class;
+        }
+    }
+
+    private static class ImmutableSetSerializer extends ValueSerializer<ImmutableSet> {
+
+        @Override
+        public void serialize(ImmutableSet value, tools.jackson.core.JsonGenerator gen, SerializationContext ctxt) throws JacksonException {
+            final Map map = (value == null) ? null : Maps.asMap(value, EMPTY_MAP);
+            ctxt.writeValue(gen, map);
+        }
+
+        @Override
+        public Class<?> handledType() {
+            return ImmutableSet.class;
+        }
+    }
+
+    private static class ImmutableSetDeserializer extends ValueDeserializer<ImmutableSet> {
+        @Override
+        public ImmutableSet deserialize(tools.jackson.core.JsonParser jp, tools.jackson.databind.DeserializationContext ctxt) throws JacksonException {
+            final Map map = ctxt.readValue(jp, Map.class);
+            return (map == null) ? null : ImmutableSet.copyOf(map.keySet());
+        }
+
+        @Override
+        public Class<?> handledType() {
+            return ImmutableSet.class;
+        }
+    }
 }

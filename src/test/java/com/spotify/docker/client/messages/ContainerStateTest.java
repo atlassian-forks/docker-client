@@ -24,9 +24,8 @@ import static com.spotify.docker.FixtureUtil.fixture;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import com.spotify.docker.client.ObjectMapperProvider;
 import java.util.Date;
 import org.junit.Rule;
@@ -38,7 +37,7 @@ public class ContainerStateTest {
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
 
-  private ObjectMapper objectMapper = ObjectMapperProvider.objectMapper();
+  private final ObjectMapper objectMapper = ObjectMapperProvider.objectMapper();
 
   @Test
   public void testLoadFromRandomFixture() throws Exception {
@@ -60,7 +59,7 @@ public class ContainerStateTest {
     assertThat(health.status(), is("starting"));
     assertThat(health.log().size(), is(1));
     
-    ContainerState.HealthLog log = health.log().get(0);
+    ContainerState.HealthLog log = health.log().getFirst();
     assertThat(log.start(), is(new Date(1412236801547L)));
     assertThat(log.end(), is(new Date(1412236802697L)));
     assertThat(log.exitCode(), is(1L));
@@ -75,14 +74,14 @@ public class ContainerStateTest {
 
   @Test
   public void testLoadInvalidConatainerStateJson() throws Exception {
-    expectedException.expect(JsonMappingException.class);
+    expectedException.expect(JacksonException.class);
     objectMapper.readValue(fixture("fixtures/container-state-invalid.json"), ContainerState.class);
 
   }
 
   @Test
   public void testLoadInvalidJson() throws Exception {
-    expectedException.expect(JsonParseException.class);
+    expectedException.expect(JacksonException.class);
     objectMapper.readValue(fixture("fixtures/invalid.json"), ContainerState.class);
   }
 }

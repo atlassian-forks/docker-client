@@ -28,7 +28,7 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import com.spotify.docker.client.ObjectMapperProvider;
 import org.junit.Test;
 

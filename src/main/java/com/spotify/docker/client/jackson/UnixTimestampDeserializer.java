@@ -20,11 +20,10 @@
 
 package com.spotify.docker.client.jackson;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
 
 import java.io.IOException;
 import java.util.Date;
@@ -33,15 +32,14 @@ import java.util.Date;
  * A deserializer for Dates where the source data is in seconds since the epoch rather than
  * milliseconds as {@link Date} expects.
  */
-public class UnixTimestampDeserializer extends JsonDeserializer<Date> {
+public class UnixTimestampDeserializer extends ValueDeserializer<Date> {
 
   public UnixTimestampDeserializer() {
   }
 
   @Override
-  public Date deserialize(final JsonParser parser, final DeserializationContext ctxt)
-      throws IOException, JsonProcessingException {
-    final JsonToken token = parser.getCurrentToken();
+  public Date deserialize(final JsonParser parser, final DeserializationContext ctxt) {
+    final JsonToken token = parser.currentToken();
     if (token == JsonToken.VALUE_STRING) {
       final String str = parser.getText().trim();
       return toDate(Long.parseLong(str));

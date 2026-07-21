@@ -3,7 +3,7 @@
 
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>8.16.1-atlassian-18-BDEV-21106-SNAPSHOT</version>
+  <version>8.16.1-atlassian-18-BDEV-21106</version>
   <packaging>jar</packaging>
   <name>docker-client</name>
   <description>A docker client </description>

@@ -3,7 +3,7 @@
 
   <groupId>com.spotify</groupId>
   <artifactId>docker-client</artifactId>
-  <version>8.16.1-atlassian-19-SNAPSHOT</version>
+  <version>8.16.1-atlassian-20-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>docker-client</name>
   <description>A docker client </description>
@@ -69,6 +69,10 @@
     </developer>
   </developers>
 
+  <properties>
+    <jackson.version>2.18.9</jackson.version>
+  </properties>
+
   <repositories>
     <repository>
        <id>jcenter</id>
@@ -91,17 +95,17 @@
     <dependency>
       <groupId>com.fasterxml.jackson.jaxrs</groupId>
       <artifactId>jackson-jaxrs-json-provider</artifactId>
-      <version>2.18.8</version>
+      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-guava</artifactId>
-      <version>2.18.8</version>
+      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.18.8</version>
+      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>org.glassfish.jersey.core</groupId>
@@ -312,16 +316,8 @@
           <createSourcesJar>true</createSourcesJar>
           <artifactSet>
             <includes>
-              <include>com.fasterxml.jackson.**</include>
-              <include>jakarta.annotation:jakarta.annotation-api</include>
-              <include>jakarta.ws.rs:jakarta.ws.rs-api</include>
-              <include>org.glassfish.**</include>
-              <include>org.jvnet.hk2.**</include>
               <include>com.github.jnr:*</include>
               <include>org.ow2.asm:*</include>
-              <include>com.google.guava:**</include>
-              <include>org.apache.httpcomponents:httpclient</include>
-              <include>org.apache.httpcomponents:httpcore</include>
               <include>asm:asm</include>
             </includes>
             <excludes>
@@ -330,52 +326,12 @@
           </artifactSet>
           <relocations>
             <relocation>
-              <pattern>javax.annotation</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.javax.annotation</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>javax.inject</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.javax.inject</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>javax.ws.rs</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.javax.ws.rs</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>org.glassfish</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.org.glassfish</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>org.jvnet.hk2</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.org.jvnet.hk2</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>com.fasterxml.jackson</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.com.fasterxml.jackson</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>com.google.common</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.com.google.common</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>com.google.thirdparty</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.com.google.thirdparty</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>org.apache.http</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.org.apache.http</shadedPattern>
-            </relocation>
-            <relocation>
               <pattern>org.objectweb.asm</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.org.objectweb.asm</shadedPattern>
             </relocation>
             <relocation>
               <pattern>org.aopalliance</pattern>
               <shadedPattern>com.spotify.docker.client.shaded.org.aopalliance</shadedPattern>
-            </relocation>
-            <relocation>
-              <pattern>org.jvnet</pattern>
-              <shadedPattern>com.spotify.docker.client.shaded.org.jvnet</shadedPattern>
             </relocation>
             <relocation>
               <pattern>com.kenai.constantine</pattern>

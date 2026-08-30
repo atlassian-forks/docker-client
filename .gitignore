@@ -1,3 +1,4 @@
+bin/
 target/
 pom.xml.versionsBackup
 *.iml
@@ -9,3 +10,4 @@ pom.xml.versionsBackup
 .DS_Store
 dependency-reduced-pom.xml
 .checkstyle
+.factorypath
